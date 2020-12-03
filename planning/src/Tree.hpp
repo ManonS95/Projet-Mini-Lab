@@ -1,9 +1,9 @@
 #ifndef TREE_HPP
 #define TREE_HPP
 
-#include <list>
-#include <memory>
+#include <vector>
 #include "Vertex.hpp"
+#include <nav_msgs/OccupancyGrid.h>
 
 
 /**
@@ -17,17 +17,20 @@ class Tree
 {
 	public :
 		// Constructor
-		Tree(std::weak_ptr<Vertex> q);
+		Tree(const Vertex &q);
+
+		// Get
+		int getIndex(const Vertex &q);
 		
 		// Method
-		Return extend(std::weak_ptr<Vertex> q /**, Class MAP map **/);
-		std::weak_ptr<Vertex> nearestNeighbor(std::weak_ptr<Vertex> q);
-		void addVertex(std::weak_ptr<Vertex> q);
+		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map);
+		Vertex nearestNeighbor(const Vertex &q);
+		void addVertex(const Vertex &q);
 		
 	private :
-		std::list<std::weak_ptr<Vertex>> list_v;
+		std::vector<Vertex> vect_v;
 };
 
-Tree build_rrt(std::weak_ptr<Vertex> q_init /**, Class MAP map **/);
+Tree build_rrt(const Vertex &q_start, const Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
 
 #endif // TREE_HPP
