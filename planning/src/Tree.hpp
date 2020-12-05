@@ -6,6 +6,8 @@
 #include <nav_msgs/OccupancyGrid.h>
 
 
+#define LIMITS 100
+
 /**
 * Implementation inspired by : 
 * http://www.kuffner.org/james/papers/kuffner_icra2000.pdf
@@ -21,7 +23,8 @@ class Tree
 
 		// Get
 		int getIndex(const Vertex &q);
-		
+		std::vector<Vertex> getTree();
+		std::vector<Vertex> getPath(const Vertex &q);		
 		// Method
 		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map);
 		Vertex nearestNeighbor(const Vertex &q);

@@ -1,4 +1,8 @@
+#include <stdexcept>
+#include <algorithm>
 #include "Tree.hpp"
+
+using namespace std;
 
 // Constructor
 Tree::Tree(const Vertex &q)
@@ -15,6 +19,10 @@ int Tree::getIndex(const Vertex &q)
 	{
 		index = it - this->vect_v.begin();
 	}
+	else
+	{
+		throw logic_error("q not in graph.");
+	}
 	return index;
 }
 
@@ -29,10 +37,22 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 	Vertex q_near = this->nearestNeighbor(q);
 	Vertex q_new;
 	Return res;
-	if (newConfig(q_near, q, q_new, map))
+	if (q_near.newConfig(q, q_new, map))
 	{
-		q_new.setParentInd(this->getIndex(q_near));
+		int ind;
+		try
+		{
+			ind = this->getIndex(q_near);
+		}
+		catch (logic_error& e)
+		{
+			cerr << e.what() << endl;
+			exit();
+		}
+		
+		q_new.setParentInd(ind);
 		this->addVertex(q_new);
+		
 		if (q_new == q)
 		{
 			res = Return::Reached;
@@ -44,9 +64,38 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 	}
 	else
 	{
-		res = Return::Trapped;
+		res = Return::Trapped;		
 	}
 	return res;
+}
+
+vector<Vertex> Tree::getTree()
+{
+	return this->vect_v;
+}
+
+vector<Vertex> Tree::getPath(const Vertex &q)
+{
+	vector<Vertex> path = vector<Vertex>();
+	int ind;
+	try
+	{
+		ind = this->getIndex(q);
+	}
+	catch (logic_error& e)
+	{
+		cerr << e.what() << endl;
+		exit();
+	}
+	while(ind>-1)
+	{
+		q = this->vect_v.at(ind);
+		path.push_back(q);
+		ind = q.getParent();
+	}
+
+	reverse(path.begin(), path.end());
+	return path;
 }
 
 Vertex Tree::nearestNeighbor(const Vertex &q)
@@ -64,7 +113,7 @@ Vertex Tree::nearestNeighbor(const Vertex &q)
 			dist_min = dist_temp;
 		}
 	}
-
+	
 	return q_near;
 }
 
@@ -77,15 +126,26 @@ Tree build_rrt(const Vertex &q_start, const Vertex &q_goal, const nav_msgs::Occu
 {
 	Vertex q_rand, q_last;
 	Tree t = Tree(q_start);
-	
+	int i = 0;
 	do
 	{
 		q_rand = randVertex(map.info.width, map.info.height);
 		t.extend(q_rand, map);
 		q_last = t.getLast();
-	} while (!freePath(q_last, q_goal, map));
+		i++;
+	} while (!q_last.freePath(q_goal, map) and i<LIMITS);
 
-	q_goal.setParentInd(t.getIndex(q_last));
+	int ind;
+	try
+	{
+		ind = t.getIndex(q_last);
+	}
+	catch (logic_error& e)
+	{
+		cerr << e.what() << endl;
+		exit();
+	}
+	q_goal.setParentInd(ind);
 	t.addVertex(q_goal);
 
 	return t;
