@@ -12,6 +12,13 @@ Vertex::Vertex(int x, int y, int parent)
 	this->parent_ind = parent;
 }
 
+Vertex::Vertex(int x, int y)
+{
+	this->pos_pix[0] = x;
+	this->pos_pix[1] = y;
+	this->parent_ind = -1;
+}
+
 int* Vertex::getPosPix()
 {
 	return this->pos_pix;
@@ -29,7 +36,15 @@ void Vertex::setParentInd(int parent)
 
 double Vectex::dist(const Vertex &q)
 {
-	return sqrt((this->pos_pix[0] - q.pos_pix[0]) * (this->pos_pix[0] - q.pos_pix[0]) + (this->pos_pix[1] - q.pos_pix[1]) * (this->pos_pix[1] - q.pos_pix[1]));
+	double d_x = (this->pos_pix[0] - q.pos_pix[0]);
+	double d_y = (this->pos_pix[1] - q.pos_pix[1]);
+	double d = sqrt(d_x * d_x + d_y * d_y);
+	return d;
+}
+
+bool Vertex::hasParent()
+{
+	return this->parent_ind>-1;
 }
 
 Vertex randVertex(int width_pix, int height_pix)
@@ -40,10 +55,11 @@ Vertex randVertex(int width_pix, int height_pix)
 	return Vertex(x, y, -1);
 }
 
-bool newConfig(const Vertex &q_near, const Vertex &q, Vertex &q_new, const nav_msgs::OccupancyGrid &map)
+bool Vertex::newConfig(const Vertex &q, Vertex &q_new, const nav_msgs::OccupancyGrid &map)
 {
-	double d_x = (q_near.pos_pix[0] - q.pos_pix[0]);
-	double d_y = (q_near.pos_pix[1] - q.pos_pix[1]);
+	int *
+	double d_x = (this->pos_pix[0] - q.pos_pix[0]);
+	double d_y = (this->pos_pix[1] - q.pos_pix[1]);
 	double d = sqrt(d_x * d_x + d_y * d_y);
 	
 	// Implémenter q_new avec delta_q
@@ -54,13 +70,12 @@ bool newConfig(const Vertex &q_near, const Vertex &q, Vertex &q_new, const nav_m
 	else
 	{
 		double r = DELTA_Q / d;
-		q_new.pos_pix[0] = q_near.pos_pix[0] + (int)(r * d_x);
-		q_new.pos_pix[1] = q_near.pos_pix[1] + (int)(r * d_y);
+		q_new.pos_pix[0] = this->pos_pix[0] + (int)(r * d_x);
+		q_new.pos_pix[1] = this->pos_pix[1] + (int)(r * d_y);
 	}
 
 	// Si q_new est validé
-	int i = map.info.width * q_new.pos_pix[1] + q_new.pos_pix[0]
-	if (!freePath(q_near, q_new, map))
+	if (!this->freePath(q_new, map))
 	{
 		return false;
 	}
@@ -70,9 +85,251 @@ bool newConfig(const Vertex &q_near, const Vertex &q, Vertex &q_new, const nav_m
 	}
 }
 
-bool freePath(const Vertex &q_last, const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+bool Vertex::freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
 {
-
+	// https://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham
+	int x = this->pos_pix[0];
+	int y = this->pos_pix[1];
+	int d_x = q_goal.pos_pix[0]-x;
+	int d_y = q_goal.pos_pix[1]-y;
+	if(d_x!=0)
+	{
+		if(d_x>0)
+		{
+			if(d_y!=0)
+			{
+				if(d_y>0) // Vecteur oblique dans le 1er cadran
+				{
+					if(d_x>=d_y) // Vecteur diagonal ou oblique proche de l'horizontale, dans le 1er octant
+					{
+						int e = d_x;
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							x++;
+							e-=d_y;
+							if(e<0)
+							{
+								y++;
+								e+=d_x;
+							}
+						}while(x != q_goal.pos_pix[0]);
+					}
+					else // Vecteur oblique proche de la verticale, dans le 2e octant
+					{
+						int e = d_y;
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							y++;
+							e-=d_x;
+							if(e<0)
+							{
+								x++;
+								e+=d_y;
+							}
+						}while(y != q_goal.pos_pix[1]);	
+					}
+				}
+				else // Vecteur oblique dans le 4e cadran
+				{
+					if(d_x>=-d_y) // Vecteur diagonal ou oblique proche de l'horizontale, dans le 8e octant
+					{
+						int e = d_x;
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							x++;
+							e+=d_y;
+							if(e<0)
+							{
+								y--;
+								e+=d_x;
+							}
+						}while(x != q_goal.pos_pix[0]);
+					}
+					else // Vecteur oblique proche de la verticale, dans le 7e octant
+					{
+						int e = d_y; // e < 0
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							y--;
+							e+=d_x;
+							if(e>0)
+							{
+								x++;
+								e+=d_y;
+							}
+						}while(y != q_goal.pos_pix[1]);	
+					}
+				}
+			}
+			else // Vecteur horizontal vers la droite
+			{
+				do
+				{
+					if(!isFree(x, y, map))
+					{
+						return false;
+					}
+					x++;
+				}while(x != q_goal.pos_pix[0]);	
+			}
+		}
+		else // d_x < 0
+		{
+			if(d_y!=0)
+			{
+				if(d_y>0) // Vecteur oblique dans le 2e cadran
+				{
+					if(-d_x>=d_y) // Vecteur diagonal ou oblique proche de l'horizontale, dans le 4e octant
+					{
+						int e = d_x; // e < 0
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							x--;
+							e+=d_y;
+							if(e>=0)
+							{
+								y++;
+								e+=d_x;
+							}
+						}while(x != q_goal.pos_pix[0]);
+					}
+					else // Vecteur oblique proche de la verticale, dans le 3e octant
+					{
+						int e = d_y;
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							y++;
+							e+=d_x;
+							if(e<=0)
+							{
+								x--;
+								e+=d_y;
+							}
+						}while(y != q_goal.pos_pix[1]);	
+					}
+				}
+				else // Vecteur oblique dans le 3e cadran
+				{
+					if(d_x<=d_y) // Vecteur diagonal ou oblique proche de l'horizontale, dans le 5e octant
+					{
+						int e = d_x; // e < 0
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							x--;
+							e-=d_y;
+							if(e>=0)
+							{
+								y--;
+								e+=d_x;
+							}
+						}while(x != q_goal.pos_pix[0]);
+					}
+					else // Vecteur oblique proche de la verticale, dans le 6e octant
+					{
+						int e = d_y; // e < 0
+						d_x *= 2;
+						d_y *= 2;
+						do
+						{
+							if(!isFree(x, y, map))
+							{
+								return false;
+							}
+							y--;
+							e-=d_x;
+							if(e>=0)
+							{
+								x--;
+								e+=d_y;
+							}
+						}while(y != q_goal.pos_pix[1]);	
+					}
+				}
+			}
+			else // Vecteur horizontal vers la gauche
+			{
+				do
+				{
+					if(!isFree(x, y, map))
+					{
+						return false;
+					}
+					x--;
+				}while(x != q_goal.pos_pix[0]);	
+			}
+		}
+	}
+	else // d_x == 0
+	{
+		if(d_y!=0) // Vecteur vertical croissant
+		{
+			if(d_y>0)
+			{
+				do
+				{
+					if(!isFree(x, y, map))
+					{
+						return false;
+					}
+					y++;
+				}while(y != q_goal.pos_pix[1]);
+			}
+			else // Vecteur vertical decroissant
+			{
+				do
+				{
+					if(!isFree(x, y, map))
+					{
+						return false;
+					}
+					y++;
+				}while(y != q_goal.pos_pix[1]);
+			}
+		}
+	}
+ 	return isFree(q_goal.pos_pix[0], q_goal.pos_pix[1], map);
 }
 
 // Operators
@@ -83,4 +340,14 @@ bool Vertex::operator==(const Vertex &q)
 		return true;
 	}
 	return false;
+}
+
+bool ifFree(int x, int y, const nav_msgs::OccupancyGrid &map)
+{
+	int path = map.data[map.info.width*y+x];
+	if(path>=TRESH)
+	{
+		return false;
+	}
+	return true;
 }
