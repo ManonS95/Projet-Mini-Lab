@@ -19,6 +19,13 @@ Vertex::Vertex(int x, int y)
 	this->parent_ind = -1;
 }
 
+Vertex::Vertex()
+{
+	this->pos_pix[0] = 0;
+	this->pos_pix[1] = 0;
+	this->parent_ind = -1;
+}
+
 int* Vertex::getPosPix()
 {
 	return this->pos_pix;
@@ -34,10 +41,10 @@ void Vertex::setParentInd(int parent)
 	this->parent_ind = parent;
 }
 
-double Vectex::dist(const Vertex &q)
+double Vertex::dist(const Vertex &q)
 {
-	double d_x = (this->pos_pix[0] - q.pos_pix[0]);
-	double d_y = (this->pos_pix[1] - q.pos_pix[1]);
+	int d_x = (this->pos_pix[0] - q.pos_pix[0]);
+	int d_y = (this->pos_pix[1] - q.pos_pix[1]);
 	double d = sqrt(d_x * d_x + d_y * d_y);
 	return d;
 }
@@ -57,9 +64,8 @@ Vertex randVertex(int width_pix, int height_pix)
 
 bool Vertex::newConfig(const Vertex &q, Vertex &q_new, const nav_msgs::OccupancyGrid &map)
 {
-	int *
-	double d_x = (this->pos_pix[0] - q.pos_pix[0]);
-	double d_y = (this->pos_pix[1] - q.pos_pix[1]);
+	int d_x = (this->pos_pix[0] - q.pos_pix[0]);
+	int d_y = (this->pos_pix[1] - q.pos_pix[1]);
 	double d = sqrt(d_x * d_x + d_y * d_y);
 	
 	// Implémenter q_new avec delta_q
@@ -335,17 +341,17 @@ bool Vertex::freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
 // Operators
 bool Vertex::operator==(const Vertex &q)
 {
-	if(this->pos_pix == q->pos_pix)
+	if((this->pos_pix[0] == q.pos_pix[0]) and (this->pos_pix[1] == q.pos_pix[1]))
 	{
 		return true;
 	}
 	return false;
 }
 
-bool ifFree(int x, int y, const nav_msgs::OccupancyGrid &map)
+bool isFree(int x, int y, const nav_msgs::OccupancyGrid &map)
 {
 	int path = map.data[map.info.width*y+x];
-	if(path>=TRESH)
+	if(path >= STRECH)
 	{
 		return false;
 	}

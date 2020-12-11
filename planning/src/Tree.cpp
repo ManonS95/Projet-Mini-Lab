@@ -26,7 +26,7 @@ int Tree::getIndex(const Vertex &q)
 	return index;
 }
 
-Vertex Vertex::getLast()
+Vertex Tree::getLast()
 {
 	return this->vect_v.back();
 }
@@ -47,7 +47,7 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 		catch (logic_error& e)
 		{
 			cerr << e.what() << endl;
-			exit();
+			exit(-1);
 		}
 		
 		q_new.setParentInd(ind);
@@ -74,8 +74,9 @@ vector<Vertex> Tree::getTree()
 	return this->vect_v;
 }
 
-vector<Vertex> Tree::getPath(const Vertex &q)
+vector<Vertex> Tree::getPath(const Vertex &q_goal)
 {
+	Vertex q = q_goal;
 	vector<Vertex> path = vector<Vertex>();
 	int ind;
 	try
@@ -85,13 +86,13 @@ vector<Vertex> Tree::getPath(const Vertex &q)
 	catch (logic_error& e)
 	{
 		cerr << e.what() << endl;
-		exit();
+		exit(-1);
 	}
 	while(ind>-1)
 	{
 		q = this->vect_v.at(ind);
 		path.push_back(q);
-		ind = q.getParent();
+		ind = q.getParentInd();
 	}
 
 	reverse(path.begin(), path.end());
@@ -122,7 +123,7 @@ void Tree::addVertex(const Vertex &q)
 	this->vect_v.push_back(q);
 }
 
-Tree build_rrt(const Vertex &q_start, const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
 {
 	Vertex q_rand, q_last;
 	Tree t = Tree(q_start);
@@ -133,7 +134,7 @@ Tree build_rrt(const Vertex &q_start, const Vertex &q_goal, const nav_msgs::Occu
 		t.extend(q_rand, map);
 		q_last = t.getLast();
 		i++;
-	} while (!q_last.freePath(q_goal, map) and i<LIMITS);
+	} while (!q_last.freePath(q_goal, map) and i < LIMITS);
 
 	int ind;
 	try
@@ -143,8 +144,9 @@ Tree build_rrt(const Vertex &q_start, const Vertex &q_goal, const nav_msgs::Occu
 	catch (logic_error& e)
 	{
 		cerr << e.what() << endl;
-		exit();
+		exit(-1);
 	}
+	cout<<"ind = "<<ind<<endl;
 	q_goal.setParentInd(ind);
 	t.addVertex(q_goal);
 

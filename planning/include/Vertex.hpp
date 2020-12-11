@@ -3,14 +3,15 @@
 
 #include <nav_msgs/OccupancyGrid.h>
 
-#define DELTA_Q 14
-#define  STRECH 50
+#define DELTA_Q 50
+#define STRECH 50
 
 class Vertex {
 	public :
 		// Constructor
 		Vertex(int x, int y, int parent);
 		Vertex(int x, int y);
+		Vertex();
 		
 		// Get
 		int* getPosPix();
@@ -34,6 +35,6 @@ class Vertex {
 };
 
 Vertex randVertex(int width_pix, int height_pix);
-bool ifFree(int x, int y, const nav_msgs::OccupancyGrid &map);
+bool isFree(int x, int y, const nav_msgs::OccupancyGrid &map);
 
-#endif //VERTEX_HPP
+#endif // VERTEX_HPP
