@@ -3,7 +3,7 @@
 
 #include <nav_msgs/OccupancyGrid.h>
 
-#define DELTA_Q 50
+#define DELTA_Q 100
 #define STRECH 50
 
 class Vertex {

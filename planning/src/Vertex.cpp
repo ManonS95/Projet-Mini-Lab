@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <random>
 
 using namespace std;
 
@@ -56,9 +57,11 @@ bool Vertex::hasParent()
 
 Vertex randVertex(int width_pix, int height_pix)
 {
-	srand(time(NULL));
-	int x = rand()%width_pix;
-	int y = rand()%height_pix;
+	std::random_device generator;
+	std::uniform_int_distribution<int> distribution_x(0, width_pix);
+	std::uniform_int_distribution<int> distribution_y(0, height_pix);
+	int x = distribution_x(generator);
+	int y = distribution_y(generator);
 	return Vertex(x, y, -1);
 }
 

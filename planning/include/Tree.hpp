@@ -6,7 +6,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 
 
-#define LIMITS 1000
+#define LIMITS 3
 
 /**
 * Implementation inspired by : 

@@ -64,7 +64,8 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 	}
 	else
 	{
-		res = Return::Trapped;		
+		res = Return::Trapped;
+		cout<<"Point non retenu !"<<endl;		
 	}
 	return res;
 }
@@ -108,13 +109,14 @@ Vertex Tree::nearestNeighbor(const Vertex &q)
 	for(int i = 1; i < vect_v.size(); i++)
 	{
 		dist_temp = vect_v.at(i).dist(q);
+		cout<<"dist_temp = "<<dist_temp<<" dist_min = "<<dist_min<<endl;
 		if(dist_temp < dist_min)
 		{
 			q_near = vect_v.at(i);
 			dist_min = dist_temp;
 		}
 	}
-	
+	cout<<"Distance_min = "<<dist_min<<endl;
 	return q_near;
 }
 
