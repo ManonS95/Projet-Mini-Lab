@@ -79,8 +79,8 @@ bool Vertex::newConfig(const Vertex &q, Vertex &q_new, const nav_msgs::Occupancy
 	else
 	{
 		double r = DELTA_Q / d;
-		q_new.pos_pix[0] = this->pos_pix[0] + (int)(r * d_x);
-		q_new.pos_pix[1] = this->pos_pix[1] + (int)(r * d_y);
+		q_new.pos_pix[0] = this->pos_pix[0] - (int)(r * d_x);
+		q_new.pos_pix[1] = this->pos_pix[1] - (int)(r * d_y);
 	}
 
 	// Si q_new est validé

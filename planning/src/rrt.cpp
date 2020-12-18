@@ -66,23 +66,35 @@ int main(int argc, char **argv)
 
 
     // Construction tree
-    Tree t = build_rrt(start, goal, map);
+    vector<Vertex> t_rand;
+    Tree t = build_rrt(start, goal, map, t_rand);
     vector<Vertex> path = t.getPath(goal);
     vector<Vertex> tree = t.getTree();
+    
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
     
 
     for(size_t i = 0; i < tree.size(); i++)
     {
-        cv::circle(image, cv::Point(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]), 10, cv::Scalar(255, 255, 0), -1);
-        cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
-        imshow("Display Image", outImage);
-        cv::waitKey(2000);
+        cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
+        cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
+        cv::putText(image, cv::format("%d", i), p, CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar::all(0), 1, 8);
+
+        if ((i != tree.size() - 1) && (i != 0))
+        {
+            cv::Point p_r(t_rand.at(i-1).getPosPix()[0], t_rand.at(i-1).getPosPix()[1]);
+            cv::circle(image, p_r, 10, cv::Scalar(255, 0, 255), -1);
+            cv::putText(image, cv::format("%d", i), p_r, CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar(255, 0, 0), 1, 8);
+        }
+
         cout<<"Indice = "<<i<<" Pos x = "<<tree.at(i).getPosPix()[0]<<" Pos y = "<<tree.at(i).getPosPix()[1]<<" Parent = "<<tree.at(i).getParentInd()<<endl;
         if (tree.at(i).getParentInd() >= 0)
         {
             cv::line(image, cv::Point(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]), cv::Point(tree.at(tree.at(i).getParentInd()).getPosPix()[0], tree.at(tree.at(i).getParentInd()).getPosPix()[1]), cv::Scalar(0, 0, 0), 1);
         }
+        cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
+        imshow("Display Image", outImage);
+        cv::waitKey(2000);
     }
 
     

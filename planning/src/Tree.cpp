@@ -10,6 +10,8 @@ Tree::Tree(const Vertex &q)
 	this->vect_v.push_back(q);
 }
 
+Tree::Tree() {}
+
 // Get
 int Tree::getIndex(const Vertex &q)
 {
@@ -32,7 +34,7 @@ Vertex Tree::getLast()
 }
 
 // Method
-Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
+Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map, vector<Vertex> &t_r)
 {
 	Vertex q_near = this->nearestNeighbor(q);
 	Vertex q_new;
@@ -61,6 +63,7 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 		{
 			res = Return::Advanced;
 		}
+		t_r.push_back(q);
 	}
 	else
 	{
@@ -125,7 +128,7 @@ void Tree::addVertex(const Vertex &q)
 	this->vect_v.push_back(q);
 }
 
-Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map, vector<Vertex> &t_r)
 {
 	Vertex q_rand, q_last;
 	Tree t = Tree(q_start);
@@ -133,7 +136,7 @@ Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyG
 	do
 	{
 		q_rand = randVertex(map.info.width, map.info.height);
-		t.extend(q_rand, map);
+		t.extend(q_rand, map, t_r);
 		q_last = t.getLast();
 		i++;
 	} while (!q_last.freePath(q_goal, map) and i < LIMITS);

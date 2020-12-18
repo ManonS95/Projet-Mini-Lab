@@ -20,6 +20,7 @@ class Tree
 	public :
 		// Constructor
 		Tree(const Vertex &q);
+		Tree();
 
 		// Get
 		int getIndex(const Vertex &q);
@@ -28,7 +29,7 @@ class Tree
 		std::vector<Vertex> getPath(const Vertex &q_goal);
 		
 		// Method
-		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map);
+		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map, std::vector<Vertex> &t_r);
 		Vertex nearestNeighbor(const Vertex &q);
 		void addVertex(const Vertex &q);
 		
@@ -36,6 +37,6 @@ class Tree
 		std::vector<Vertex> vect_v;
 };
 
-Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
+Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map, std::vector<Vertex> &t_r);
 
 #endif // TREE_HPP
