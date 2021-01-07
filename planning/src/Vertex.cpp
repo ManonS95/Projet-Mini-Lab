@@ -353,8 +353,9 @@ bool Vertex::operator==(const Vertex &q)
 
 bool isFree(int x, int y, const nav_msgs::OccupancyGrid &map)
 {
-	int path = map.data[map.info.width*y+x];
-	if(path >= STRECH)
+	int pix_value = map.data[map.info.width*y+x];
+	
+	if(pix_value != 0)
 	{
 		return false;
 	}
