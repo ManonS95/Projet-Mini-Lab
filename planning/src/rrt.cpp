@@ -134,11 +134,12 @@ int main(int argc, char **argv)
         }
     }
 
-    
     //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
     cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
-    cv::waitKey(10);
+    cv::waitKey(1000);
+    cv::destroyAllWindows();
+
 
     // Conversion px/m
     nav_msgs::Path real_path;
