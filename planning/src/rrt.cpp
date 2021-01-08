@@ -1,5 +1,8 @@
 #include "ros/ros.h"
 #include <nav_msgs/GetMap.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui.hpp>
@@ -33,12 +36,14 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
     return new_map;
 }
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "get_map");
 
     ros::NodeHandle n;
     ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("static_map");
+    ros::Publisher pub_path = n.advertise<nav_msgs::Path>("rrt_path", 1, true);
     nav_msgs::GetMap srv;
     nav_msgs::OccupancyGrid original_map;
     nav_msgs::OccupancyGrid map;
@@ -133,8 +138,19 @@ int main(int argc, char **argv)
     //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
     cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
-    cv::waitKey(0);
+    cv::waitKey(10);
 
+    // Conversion px/m
+    nav_msgs::Path real_path;
+    for(size_t i = 0; i < path.size(); i++)
+    {
+        geometry_msgs::PoseStamped pt;
+        pt.pose.position.x = path.at(i).getPosPix()[0] * map.info.resolution;
+        pt.pose.position.y = path.at(i).getPosPix()[1] * map.info.resolution;
+
+        real_path.poses.push_back(pt);
+    }
+    pub_path.publish(real_path);
 
     ros::spin();
 

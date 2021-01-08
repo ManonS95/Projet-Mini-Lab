@@ -6,33 +6,28 @@
 #include <stdio.h>
 #include <fcntl.h>
 
+#define V 0.5
+
 geometry_msgs::Twist action(char ch)
 {
 	geometry_msgs::Twist twist;
+	twist.linear.x = 0, twist.linear.y = 0, twist.linear.z = 0;
+	twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = 0;
 	if (ch == 'z')
 	{
-		twist.linear.x = 1, twist.linear.y = 0, twist.linear.z = 0;
-		twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = 0;
+		twist.linear.x = V;
 	}
-	else if (ch == 'q')
+	if (ch == 'q')
 	{
-		twist.linear.x = 0, twist.linear.y = 0, twist.linear.z = 0;
-		twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = 1;
+		twist.angular.z = V;
 	}
-	else if (ch == 'x')
+	if (ch == 'x')
 	{
-		twist.linear.x = -1, twist.linear.y = 0, twist.linear.z = 0;
-		twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = 0;
+		twist.linear.x = -V;
 	}
-	else if (ch == 'd')
+	if (ch == 'd')
 	{
-		twist.linear.x = 0, twist.linear.y = 0, twist.linear.z = 0;
-		twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = -1;
-	}
-	else
-	{
-		twist.linear.x = 0, twist.linear.y = 0, twist.linear.z = 0;
-		twist.angular.x = 0, twist.angular.y = 0, twist.angular.z = 0;
+		twist.angular.z = -V;
 	}
 	
 	return twist;
