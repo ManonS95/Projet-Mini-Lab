@@ -27,12 +27,12 @@ Vertex::Vertex()
 	this->parent_ind = -1;
 }
 
-int* Vertex::getPosPix()
+const int* Vertex::getPosPix() const
 {
 	return this->pos_pix;
 }
 
-int Vertex::getParentInd()
+int Vertex::getParentInd() const
 {
 	return this->parent_ind;
 }
@@ -42,7 +42,7 @@ void Vertex::setParentInd(int parent)
 	this->parent_ind = parent;
 }
 
-double Vertex::dist(const Vertex &q)
+double Vertex::dist(const Vertex &q) const
 {
 	int d_x = (this->pos_pix[0] - q.pos_pix[0]);
 	int d_y = (this->pos_pix[1] - q.pos_pix[1]);
@@ -50,7 +50,7 @@ double Vertex::dist(const Vertex &q)
 	return d;
 }
 
-bool Vertex::hasParent()
+bool Vertex::hasParent() const
 {
 	return this->parent_ind>-1;
 }
@@ -94,7 +94,7 @@ bool Vertex::newConfig(const Vertex &q, Vertex &q_new, const nav_msgs::Occupancy
 	}
 }
 
-bool Vertex::freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+bool Vertex::freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map) const
 {
 	// https://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham
 	int x = this->pos_pix[0];
@@ -342,7 +342,7 @@ bool Vertex::freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
 }
 
 // Operators
-bool Vertex::operator==(const Vertex &q)
+bool Vertex::operator==(const Vertex &q) const
 {
 	if((this->pos_pix[0] == q.pos_pix[0]) and (this->pos_pix[1] == q.pos_pix[1]))
 	{

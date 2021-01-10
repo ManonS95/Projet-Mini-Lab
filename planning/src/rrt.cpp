@@ -90,22 +90,23 @@ int main(int argc, char **argv)
 
     // Récupérer position start et goal
     Vertex start(800, 800);
-    Vertex goal(900, 800);
+    Vertex goal(1500, 700);
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
 
 
 
     // Construction tree
-    vector<Vertex> t_rand;
-    Tree t = build_rrt(start, goal, map);
+    /*Tree t = build_rrt(start, goal, map);
     vector<Vertex> path = t.getPath(goal);
-    vector<Vertex> tree = t.getTree();
+    vector<Vertex> tree = t.getTree();*/
+
+    vector<Vertex> path = rrt_connect_planner(start, goal, map);
     
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
     
 
-    for(size_t i = 0; i < tree.size(); i++)
+    /*for(size_t i = 0; i < tree.size(); i++)
     {
         cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
         cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
         cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
         imshow("Display Image", outImage);
         cv::waitKey(100);
-    }
+    }*/
 
     for(size_t i = 0; i < path.size(); i++)
     {
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
         cv::circle(image, p, 10, cv::Scalar(0, 255, 0), -1);
 
         // On relie les points entre eux
-        if (path.at(i).getParentInd() >= 0)
+        if (i > 0)
         {
             cv::Point p1(path.at(i-1).getPosPix()[0], path.at(i-1).getPosPix()[1]);
             cv::Point p2(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
     //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
     cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
-    cv::waitKey(1000);
+    cv::waitKey(10000);
     cv::destroyAllWindows();
 
 

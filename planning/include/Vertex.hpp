@@ -13,20 +13,20 @@ class Vertex {
 		Vertex();
 		
 		// Get
-		int* getPosPix();
-		int getParentInd();
+		const int* getPosPix() const;
+		int getParentInd() const;
 		
 		// Set
 		void setParentInd(int parent);
 
 		// Methods
-		double dist(const Vertex &q);
-		bool hasParent();
+		double dist(const Vertex &q) const;
+		bool hasParent() const;
 		bool newConfig(const Vertex &q, Vertex &q_new, const nav_msgs::OccupancyGrid &map);
-		bool freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
+		bool freePath(const Vertex &q_goal, const nav_msgs::OccupancyGrid &map) const;
 		
 		// Operators
-		bool operator==(const Vertex &q);
+		bool operator==(const Vertex &q) const;
 		
 	private :
 		int pos_pix[2];

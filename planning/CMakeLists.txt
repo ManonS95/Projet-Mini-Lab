@@ -132,7 +132,6 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(rrt_node src/rrt.cpp src/Tree.cpp src/Vertex.cpp)
- add_executable(rrt2_node src/rrt2.cpp src/Tree2.cpp src/Vertex2.cpp)
  add_executable(command_node src/path_following.cpp)
 
 ## Rename C++ executable without prefix
@@ -148,9 +147,6 @@ include_directories(
 ## Specify libraries to link a library or executable target against
 
  target_link_libraries(rrt_node
-   ${catkin_LIBRARIES} ${OpenCV_LIBS}
- )
- target_link_libraries(rrt2_node
    ${catkin_LIBRARIES} ${OpenCV_LIBS}
  )
 target_link_libraries(command_node

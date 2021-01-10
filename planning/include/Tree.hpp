@@ -6,7 +6,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 
 
-#define LIMITS 100
+#define LIMITS 1000
 
 /**
 * Implementation inspired by : 
@@ -23,14 +23,16 @@ class Tree
 		Tree();
 
 		// Get
-		int getIndex(const Vertex &q);
-		Vertex getLast();
-		std::vector<Vertex> getTree();
-		std::vector<Vertex> getPath(const Vertex &q_goal);
+		int getIndex(const Vertex &q) const;
+		Vertex getLast() const;
+		std::vector<Vertex> getTree() const;
+		std::vector<Vertex> getPath(const Vertex &q_goal) const;
+		std::vector<Vertex> getPath(const Tree &t_goal) const;
 		
 		// Method
 		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map);
-		Vertex nearestNeighbor(const Vertex &q);
+		Return connect(const Vertex &q, const nav_msgs::OccupancyGrid &map);
+		Vertex nearestNeighbor(const Vertex &q) const;
 		void addVertex(const Vertex &q);
 		
 	private :
@@ -38,5 +40,6 @@ class Tree
 };
 
 Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
+std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
 
 #endif // TREE_HPP

@@ -13,7 +13,7 @@ Tree::Tree(const Vertex &q)
 Tree::Tree() {}
 
 // Get
-int Tree::getIndex(const Vertex &q)
+int Tree::getIndex(const Vertex &q) const
 {
 	int index = -1;
 	auto it = find(this->vect_v.begin(), this->vect_v.end(), q);
@@ -28,7 +28,7 @@ int Tree::getIndex(const Vertex &q)
 	return index;
 }
 
-Vertex Tree::getLast()
+Vertex Tree::getLast() const
 {
 	return this->vect_v.back();
 }
@@ -71,12 +71,22 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 	return res;
 }
 
-vector<Vertex> Tree::getTree()
+Return Tree::connect(const Vertex &q, const nav_msgs::OccupancyGrid &map)
+{
+	Return s;
+	do
+	{
+		s = extend(q, map);
+	} while (s == Return::Advanced);
+	return s;
+}
+
+vector<Vertex> Tree::getTree() const
 {
 	return this->vect_v;
 }
 
-vector<Vertex> Tree::getPath(const Vertex &q_goal)
+vector<Vertex> Tree::getPath(const Vertex &q_goal) const
 {
 	Vertex q = q_goal;
 	vector<Vertex> path = vector<Vertex>();
@@ -101,7 +111,19 @@ vector<Vertex> Tree::getPath(const Vertex &q_goal)
 	return path;
 }
 
-Vertex Tree::nearestNeighbor(const Vertex &q)
+vector<Vertex> Tree::getPath(const Tree &t_goal) const
+{
+	vector<Vertex> path_a = this->getPath(this->getLast());
+	vector<Vertex> path_b = t_goal.getPath(t_goal.getLast());
+	
+	reverse(path_b.begin(), path_b.end());
+	path_a.pop_back();
+	path_a.insert(path_a.end(), path_b.begin(), path_b.end());
+	
+	return path_a;
+}
+
+Vertex Tree::nearestNeighbor(const Vertex &q) const
 {
 	Vertex q_near = vect_v.at(0);
 	double dist_min = q_near.dist(q);
@@ -160,3 +182,35 @@ Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyG
 	return t;
 }
 
+std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+{
+	Tree t_a = Tree(q_start);
+	Tree t_b = Tree(q_goal);
+	Vertex q_rand, q_last;
+
+	int i = 0;
+	do
+	{
+		q_rand = randVertex(map.info.width, map.info.height);
+		if (t_a.extend(q_rand, map) != Return::Trapped)
+		{
+			q_last = t_a.getLast();
+			i++;
+			if (t_b.connect(q_last, map) == Return::Reached)
+			{
+				if (t_a.getTree().at(0) == q_start)
+				{
+					return t_a.getPath(t_b);
+				}
+				else
+				{
+					return t_b.getPath(t_a);
+				}
+			}
+		}
+		swap(t_a, t_b);
+		
+	} while (i < LIMITS);
+	cout<<"Path not found -> Limit too short!"<<endl;
+	exit(1);
+}
