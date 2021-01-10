@@ -131,7 +131,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(rrt_node src/rrt.cpp src/Tree.cpp src/Vertex.cpp)
+ add_executable(rrt_node src/rrt.cpp src/Tree.cpp src/Vertex.cpp src/Dijkstra.cpp)
  add_executable(command_node src/path_following.cpp)
 
 ## Rename C++ executable without prefix

@@ -9,6 +9,7 @@
 #include <time.h>
 #include "Tree.hpp"
 #include "Vertex.hpp"
+#include "Dijkstra.hpp"
 
 using namespace std;
 
@@ -102,7 +103,10 @@ int main(int argc, char **argv)
     vector<Vertex> tree = t.getTree();*/
 
     vector<Vertex> path = rrt_connect_planner(start, goal, map);
-    
+
+	Dijkstra d(path, map);
+	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
+		    
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
     
 
@@ -135,20 +139,34 @@ int main(int argc, char **argv)
         }
     }
 
+    for(size_t i = 0; i < path_simplifie.size(); i++)
+    {
+        cv::Point p(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
+        cv::circle(image, p, 10, cv::Scalar(255, 0, 0), -1);
+
+        // On relie les points entre eux
+        if (i > 0)
+        {
+            cv::Point p1(path_simplifie.at(i-1).getPosPix()[0], path_simplifie.at(i-1).getPosPix()[1]);
+            cv::Point p2(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
+            cv::line(image, p1, p2, cv::Scalar(0, 50, 50), 1);
+        }
+    }
+
     //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
     cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
-    cv::waitKey(10000);
+    cv::waitKey();
     cv::destroyAllWindows();
 
 
     // Conversion px/m
     nav_msgs::Path real_path;
-    for(size_t i = 0; i < path.size(); i++)
+    for(size_t i = 0; i < path_simplifie.size(); i++)
     {
         geometry_msgs::PoseStamped pt;
-        pt.pose.position.x = path.at(i).getPosPix()[0] * map.info.resolution;
-        pt.pose.position.y = path.at(i).getPosPix()[1] * map.info.resolution;
+        pt.pose.position.x = path_simplifie.at(i).getPosPix()[0] * map.info.resolution;
+        pt.pose.position.y = path_simplifie.at(i).getPosPix()[1] * map.info.resolution;
 
         real_path.poses.push_back(pt);
     }
