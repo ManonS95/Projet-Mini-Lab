@@ -20,7 +20,6 @@ class Commande {
 	private:
 		Pid pid;
 		Path path;
-		Point checkpoint;
 		double threshold;
 		size_t ind;
 };

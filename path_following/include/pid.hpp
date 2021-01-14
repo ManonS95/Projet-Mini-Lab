@@ -15,4 +15,4 @@ class Pid{
 		double sum_e;
 };
 
-#endif //PID_HPP
+#endif // PID_HPP
