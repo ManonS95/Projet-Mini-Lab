@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-Commande::Commande(Path path) : threshold(0.1)
+Commande::Commande(Path path) : threshold(0.1), speed(1)
 {
 	pid = Pid(1, 0, 0, 0);
     init(path);
@@ -51,7 +51,32 @@ void Commande::init(Path path)
     ind = 0;
 }
 
+double Commande::K(double d, double theta)
+{
+	double k = 10; // Coefficient Proportionnel
+	return abs(k*d*cos(theta));
+}
+
 cmd_vel Commande::following(Point current_pos)
 {
-    
+    double u1 = speed; // vitesse de translation pure
+	double theta_e = theta_error(current_pos);
+	double d = distance(current_pos);
+	double u2 = - u1 / cos(theta_e) * (sin(theta_e) + K(d,theta_e) * d);
+}
+
+cmd_vel Commande::action(Point current_pos)
+{
+	double theta_e = theta_error(current_pos);
+	if(abs(theta_e)<pi/2)
+	{
+		return following(current_pos);
+	}
+	else
+	{
+		double u1 = speed;
+		double u2 = pid.pid(theta_e);
+		return /*something*/;
+	}
+	
 }

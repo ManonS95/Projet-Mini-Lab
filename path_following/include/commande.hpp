@@ -16,12 +16,14 @@ class Commande {
 		// Methode
 		void init(Path path);
 		cmd_vel following(Point current_pos);
+		cmd_vel action(Point current_pos);
 
 	private:
 		Pid pid;
 		Path path;
 		double threshold;
 		size_t ind;
+		double speed;
 };
 
 #endif //COMMANDE_HPP
