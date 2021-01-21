@@ -165,9 +165,10 @@ int main(int argc, char **argv)
     for(size_t i = 0; i < path_simplifie.size(); i++)
     {
         geometry_msgs::PoseStamped pt;
-        pt.pose.position.x = path_simplifie.at(i).getPosPix()[0] * map.info.resolution;
-        pt.pose.position.y = path_simplifie.at(i).getPosPix()[1] * map.info.resolution;
-
+        
+        pt.pose.position.x = path_simplifie.at(i).getPosPix()[0] * map.info.resolution + map.info.origin.position.x;
+        pt.pose.position.y = path_simplifie.at(i).getPosPix()[1] * map.info.resolution + map.info.origin.position.y;
+		pt.pose.position.z = map.info.origin.position.z;
         real_path.poses.push_back(pt);
     }
     pub_path.publish(real_path);
