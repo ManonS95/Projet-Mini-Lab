@@ -2,28 +2,31 @@
 #define COMMANDE_HPP
 
 #include <nav_msgs/Path.h>
-#include <nav_msgs/Point.h>
+#include <vector>
 #include "Pid.hpp"
 
 class Commande {
 	public:
+		Commande();
 		Commande(Path path);
 
 		// Get
-		double theta_error(Point current_pos);
-		double distance(Point current_pos);
+		double theta_error(double theta);
+		double distance(double x, double y);
 
 		// Methode
 		void init(Path path);
-		cmd_vel following(Point current_pos);
-		cmd_vel action(Point current_pos);
-
+		double mot_command(double x, double y, double theta);
+		std::vector<double> command_law(double x, double y, double theta);
+		bool verification(double x, double y);
+		bool fin();
 	private:
 		Pid pid;
 		Path path;
 		double threshold;
 		size_t ind;
-		double speed;
+		double u1;
 };
 
+in
 #endif //COMMANDE_HPP
