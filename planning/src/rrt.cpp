@@ -10,6 +10,7 @@
 #include "Tree.hpp"
 #include "Vertex.hpp"
 #include "Dijkstra.hpp"
+#include "planning/RRTPlanning.h"
 
 using namespace std;
 
@@ -37,61 +38,41 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
     return new_map;
 }
 
-
-int main(int argc, char **argv)
+bool planning(planning::RRTPlanning::Request& req, planning::RRTPlanning::Response& res)
 {
-    ros::init(argc, argv, "get_map");
-
-    ros::NodeHandle n;
-    ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("static_map");
-    ros::Publisher pub_path = n.advertise<nav_msgs::Path>("rrt_path", 1, true);
-    nav_msgs::GetMap srv;
-    nav_msgs::OccupancyGrid original_map;
     nav_msgs::OccupancyGrid map;
     cv::Mat image;
     cv::Mat outImage;
 
-    srand(time(NULL));
-
-    // Récupèrer la Map
-    client.waitForExistence();
     
-    if (client.call(srv))
+    map = map_dilatation(req.map, 10);
+    ROS_INFO("We have the map!\n");
+    image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
+    
+    for (size_t x = 0; x < map.info.height; x++)
     {
-        original_map =  srv.response.map;
-        map = map_dilatation(original_map, 10);
-        ROS_INFO("We have the map!\n");
-        image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
-        
-        for (size_t x = 0; x < map.info.height; x++)
+        for (size_t y = 0; y < map.info.width; y++)
         {
-            for (size_t y = 0; y < map.info.width; y++)
+            if (map.data[y + map.info.width * x] == -1)
             {
-                if (map.data[y + map.info.width * x] == -1)
-                {
-                    image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 255, 255);
-                }
-                else if (map.data[y + map.info.width * x] == 0)
-                {
-                    image.at<cv::Vec3b>(x, y) = cv::Vec3b(255, 255, 255);
-                }
-                else if (map.data[y + map.info.width * x] > 0)
-                {
-                    image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 0, 0);
-                }
+                image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 255, 255);
+            }
+            else if (map.data[y + map.info.width * x] == 0)
+            {
+                image.at<cv::Vec3b>(x, y) = cv::Vec3b(255, 255, 255);
+            }
+            else if (map.data[y + map.info.width * x] > 0)
+            {
+                image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 0, 0);
             }
         }
-    }
-    else
-    {
-        ROS_ERROR("Failed to call service get_map");
-        return 1;
     }
 
 
     // Récupérer position start et goal
-    Vertex start(800, 800);
-    Vertex goal(1500, 700);
+    Vertex start(req.start.translation.x, req.start.translation.x);
+    Vertex goal(req.goal.translation.x, req.goal.translation.x);
+    
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
 
@@ -171,7 +152,18 @@ int main(int argc, char **argv)
 		pt.pose.position.z = map.info.origin.position.z;
         real_path.poses.push_back(pt);
     }
-    pub_path.publish(real_path);
+    res.path = real_path;
+    return true;
+}
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "get_map");
+    srand(time(NULL));
+
+    ros::NodeHandle n;
+    ros::ServiceServer plan = n.advertiseService("plan_srv", planning);
+    
 
     ros::spin();
 

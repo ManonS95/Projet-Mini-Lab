@@ -15,12 +15,16 @@ Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(1), pid(1, 0, 0, 0,
 double Commande::theta_error(double theta)
 {
 	size_t n = ind;
+	cout << path.poses.size() << endl;
 	if(n >= path.poses.size())
 	{
-		n = path.poses.size()-1;
+		n = path.poses.size()-2;
+		cout << n << endl;
 	}
+	cout<<"theta_error1"<<endl;
 	double y = path.poses.at(n+1).pose.position.y - path.poses.at(n).pose.position.y;
 	double x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
+	cout<<"theta_error2"<<endl;
 	double theta_c = atan2(y, x);
 	return theta_c - theta;
 }
@@ -28,9 +32,9 @@ double Commande::theta_error(double theta)
 double Commande::distance(double x, double y)
 {
 	size_t n = ind;
-	if(n > path.poses.size())
+	if(n >= path.poses.size())
 	{
-		n = path.poses.size()-1;
+		n = path.poses.size()-2;
 	}
 	double n_y = path.poses.at(n+1).pose.position.y - path.poses.at(n).pose.position.y;
 	double n_x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
@@ -52,6 +56,7 @@ void Commande::init(const nav_msgs::Path& path)
 {
     this->path = path;
     ind = 0;
+	cout << "init" << endl;
 }
 
 double Commande::K(double d, double theta_e)
@@ -69,17 +74,22 @@ double Commande::mot_command(double x, double y, double theta)
 
 vector<double> Commande::command_law(double x, double y, double theta)
 {
-	vector<double> u(2,0);
+	vector<double> u(2, 0);
 	double u2 = 0;
+	cout<<"Commande_law1"<<endl;
 	double theta_e = theta_error(theta);
-	if(abs(theta_e)<PI/2)
+	cout<<"Commande_law2"<<endl;
+	if(abs(theta_e) < PI/2)
 	{
+		cout<<"Commande_law mot"<<endl;
 		u2 = mot_command(x, y, theta);
 	}
 	else
 	{
+		cout<<"Commande_law corr"<<endl;
 		u2 = pid.correcteur(theta_e);
 	}
+	cout<<"Commande_law3"<<endl;
 	if(verification(x, y))
 	{
 		ind++;	

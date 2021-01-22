@@ -5,7 +5,9 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Path.h>
+#include "planning/RRTPlanning.h"
 #include <time.h>
 #include <stdio.h>
 
@@ -18,15 +20,53 @@ int main(int argc, char **argv)
 
     Commande cmd;
     Pose_2d p;
-    ros::Subscriber sub_path = n.subscribe("rrt_path", 1, &Commande::init, &cmd);
+	geometry_msgs::Transform start, goal;
+	start.translation = geometry_msgs::Vector3(1200, 1000, 0);
+	goal.translation = geometry_msgs::Vector3(800, 800, 0);
+	
+    ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("static_map");
+	nav_msgs::GetMap srv;
+    nav_msgs::OccupancyGrid original_map;
+
+    // Récupèrer la Map
+    client.waitForExistence();
+    if (client.call(srv))
+    {
+        original_map =  srv.response.map;
+		ros::ServiceClient client_plan = n.serviceClient<planning::RRTPlanning>("plan_srv");
+		planning::RRTPlanning srv_plan;
+		srv_plan.request.start = start;
+		srv_plan.request.goal = goal;
+		srv_plan.request.map = original_map;
+    
+		client_plan.waitForExistence();
+		if (client_plan.call(srv_plan))
+		{
+			cmd.init(srv_plan.response);
+		}
+		else
+		{
+			ROS_ERROR("Failed to call service plan_srv");
+			return 1;
+		}
+	}
+	else
+    {
+        ROS_ERROR("Failed to call service get_map");
+        return 1;
+    }
+	
     ros::Publisher pub_cmd = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 	while(!cmd.fin())
 	{
+		cout<<"Coucou1"<<endl;
 		ros::Subscriber sub_tf = n.subscribe("tf", 1, &Pose_2d::init, &p);
 		vector<double> v = cmd.command_law(p.getX(), p.getY(), p.getTheta());
+		cout<<"Coucou3"<<endl;
 		geometry_msgs::Twist t;
 		t.linear.x = v.at(0);
-		t.angular.z = v.at(1); 
+		t.angular.z = v.at(1);
+		cout<<"Coucou4"<<endl;
 		pub_cmd.publish(t);
 	}
 	geometry_msgs::Twist t;
