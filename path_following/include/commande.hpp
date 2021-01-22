@@ -2,31 +2,32 @@
 #define COMMANDE_HPP
 
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <vector>
-#include "Pid.hpp"
+#include "pid.hpp"
 
 class Commande {
 	public:
 		Commande();
-		Commande(Path path);
+		Commande(nav_msgs::Path path);
 
 		// Get
 		double theta_error(double theta);
 		double distance(double x, double y);
 
 		// Methode
-		void init(Path path);
+		void init(const nav_msgs::Path& path);
 		double mot_command(double x, double y, double theta);
 		std::vector<double> command_law(double x, double y, double theta);
+		double K(double d, double theta_e);
 		bool verification(double x, double y);
 		bool fin();
 	private:
 		Pid pid;
-		Path path;
+		nav_msgs::Path path;
 		double threshold;
 		size_t ind;
 		double u1;
 };
 
-in
 #endif //COMMANDE_HPP

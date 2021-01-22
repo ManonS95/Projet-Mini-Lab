@@ -2,6 +2,8 @@
 #define POSE_2D_HPP
 
 #include <geometry_msgs/Pose.h>
+#include <tf2_msgs/TFMessage.h>
+#include <geometry_msgs/Transform.h>
 
 class Pose_2d
 {
@@ -9,14 +11,14 @@ class Pose_2d
 		double x;
 		double y;
 		double theta;
-		Pose pose;
+		geometry_msgs::Transform pose;
 
 	public:
 		Pose_2d();
-		init(Pose pose);
-		x();
-		y();
-		theta();
+		void init(const tf2_msgs::TFMessage& pose);
+		double getX();
+		double getY();
+		double getTheta();
 };
 
 #endif //POSE_2D_HPP

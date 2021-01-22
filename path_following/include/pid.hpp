@@ -4,8 +4,8 @@
 class Pid{
 	public:
 		Pid(double Kp, double Ki, double Kd, double saturation, double dt);
-
 		double correcteur(double erreur);
+		
 	private:
 		double Kp;
 		double Ki;
