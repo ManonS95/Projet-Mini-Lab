@@ -5,11 +5,10 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Path.h>
-#include "planning/RRTPlanning.h"
 #include <time.h>
 #include <stdio.h>
+#include "planning/RRTPlanning.h"
 
 using namespace std;
 
@@ -21,8 +20,10 @@ int main(int argc, char **argv)
     Commande cmd;
     Pose_2d p;
 	geometry_msgs::Transform start, goal;
-	start.translation = geometry_msgs::Vector3(1200, 1000, 0);
-	goal.translation = geometry_msgs::Vector3(800, 800, 0);
+	start.translation.x = 1200.0;
+	start.translation.y = 1000.0;
+	goal.translation.x = 800.0;
+	goal.translation.y = 800.0;
 	
     ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("static_map");
 	nav_msgs::GetMap srv;
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
 		client_plan.waitForExistence();
 		if (client_plan.call(srv_plan))
 		{
-			cmd.init(srv_plan.response);
+			cmd.init(srv_plan.response.path);
 		}
 		else
 		{

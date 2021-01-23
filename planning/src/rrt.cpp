@@ -38,7 +38,7 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
     return new_map;
 }
 
-bool planning(planning::RRTPlanning::Request& req, planning::RRTPlanning::Response& res)
+bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlanning::Response& res)
 {
     nav_msgs::OccupancyGrid map;
     cv::Mat image;
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
 
     ros::NodeHandle n;
-    ros::ServiceServer plan = n.advertiseService("plan_srv", planning);
+    ros::ServiceServer plan = n.advertiseService("plan_srv", planning_function);
     
 
     ros::spin();

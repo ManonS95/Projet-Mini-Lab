@@ -52,6 +52,7 @@
   <build_depend>roscpp</build_depend>
   <build_depend>stg_msgs</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>planning</build_depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <build_export_depend>roscpp</build_export_depend>
@@ -59,6 +60,7 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>stg_msgs</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>planning</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
