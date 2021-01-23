@@ -58,7 +58,9 @@ int main(int argc, char **argv)
     }
 	
     ros::Publisher pub_cmd = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-	while(!cmd.fin())
+	ros::Rate rate_path(10);
+
+	while(!cmd.fin() && ros::ok())
 	{
 		cout<<"Coucou1"<<endl;
 		ros::Subscriber sub_tf = n.subscribe("tf", 1, &Pose_2d::init, &p);
@@ -69,12 +71,12 @@ int main(int argc, char **argv)
 		t.angular.z = v.at(1);
 		cout<<"Coucou4"<<endl;
 		pub_cmd.publish(t);
+		rate_path.sleep();
 	}
 	geometry_msgs::Twist t;
 	pub_cmd.publish(t);
 
 
-    
     ros::spin();
 
     return 0;

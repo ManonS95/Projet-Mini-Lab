@@ -70,8 +70,8 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
 
     // Récupérer position start et goal
-    Vertex start(req.start.translation.x, req.start.translation.x);
-    Vertex goal(req.goal.translation.x, req.goal.translation.x);
+    Vertex start(req.start.translation.x, req.start.translation.y);
+    Vertex goal(req.goal.translation.x, req.goal.translation.y);
     
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
