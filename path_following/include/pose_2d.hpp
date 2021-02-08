@@ -4,6 +4,8 @@
 #include <geometry_msgs/Pose.h>
 #include <tf2_msgs/TFMessage.h>
 #include <geometry_msgs/Transform.h>
+#include <geometry_msgs/TransformStamped.h>
+
 
 class Pose_2d
 {
@@ -15,7 +17,7 @@ class Pose_2d
 
 	public:
 		Pose_2d();
-		void init(const tf2_msgs::TFMessage& pose);
+		void init(const geometry_msgs::TransformStamped& pose);
 		double getX();
 		double getY();
 		double getTheta();

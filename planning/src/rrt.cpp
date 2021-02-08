@@ -49,9 +49,9 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     ROS_INFO("We have the map!\n");
     image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
     
-    for (size_t x = 0; x < map.info.height; x++)
+    for (size_t y = 0; y < map.info.height; y++)
     {
-        for (size_t y = 0; y < map.info.width; y++)
+        for (size_t x = 0; x < map.info.width; x++)
         {
             if (map.data[y + map.info.width * x] == -1)
             {
@@ -70,9 +70,11 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
 
     // Récupérer position start et goal
-    Vertex start(req.start.translation.x, req.start.translation.y);
+    int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
+    int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
+    Vertex start(start_x, 1000.0);
     Vertex goal(req.goal.translation.x, req.goal.translation.y);
-    
+
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
 

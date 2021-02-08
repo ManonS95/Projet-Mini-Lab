@@ -52,7 +52,7 @@ double Vertex::dist(const Vertex &q) const
 
 bool Vertex::hasParent() const
 {
-	return this->parent_ind>-1;
+	return this->parent_ind > -1;
 }
 
 Vertex randVertex(int width_pix, int height_pix)

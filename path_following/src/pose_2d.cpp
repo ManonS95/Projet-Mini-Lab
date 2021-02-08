@@ -8,15 +8,9 @@ using namespace std;
 Pose_2d::Pose_2d(): x(0), y(0), theta(0)
 {}
 
-void Pose_2d::init(const tf2_msgs::TFMessage& pose)
+void Pose_2d::init(const geometry_msgs::TransformStamped& pose)
 {
-	for (const auto& p : pose.transforms)
-	{
-		if (p.child_frame_id.compare("base_footprint") == 0)
-		{
-			this->pose = p.transform;
-		}
-	}
+	this->pose = pose.transform;
 }
 
 double Pose_2d::getX()
