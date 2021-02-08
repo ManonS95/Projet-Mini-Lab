@@ -27,10 +27,12 @@ int main(int argc, char **argv)
 	geometry_msgs::Transform start, goal;
 
 	geometry_msgs::TransformStamped transformStamped;
-	try{
+	try
+	{
 		transformStamped = tfBuffer.lookupTransform("odom", "base_footprint", ros::Time(0));
 	}
-	catch (tf2::TransformException &ex) {
+	catch (tf2::TransformException &ex) 
+	{
 		ROS_WARN("%s",ex.what());
 		ros::Duration(1.0).sleep();
 	}
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
     client.waitForExistence();
     if (client.call(srv))
     {
-        original_map =  srv.response.map;
+        original_map = srv.response.map;
 		ros::ServiceClient client_plan = n.serviceClient<planning::RRTPlanning>("plan_srv");
 		planning::RRTPlanning srv_plan;
 		srv_plan.request.start = start;

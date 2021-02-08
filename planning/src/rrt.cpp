@@ -17,21 +17,44 @@ using namespace std;
 nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r_robot)
 {
     nav_msgs::OccupancyGrid new_map = map;
+    int cpt_x;
 
-    for (int i = 0; i < r_robot; i++)
+    
+    for (size_t y = 1; y < map.info.height; y++)
     {
-        for (size_t x = 1; x < map.info.height - 1; x++)
+        for (size_t x = 1; x < map.info.width; x++)
         {
-            for (size_t y = 1; y < map.info.width - 1; y++)
+            if (map.data[x + map.info.width * y] != 0) // Si le pixel est noir
             {
-                if (map.data[y + map.info.width * x] != 0)
-                {
-                    new_map.data[y - 1 + new_map.info.width * x] = 1;
-                    new_map.data[y + 1 + new_map.info.width * x] = 1;
-                    new_map.data[y + new_map.info.width * (x + 1)] = 1;
-                    new_map.data[y + new_map.info.width * (x - 1)] = 1;
-                }
+                /*if ((map.data[x - 1 + map.info.width * y] == 0) || (map.data[x + 1 + map.info.width * y] == 0) && (map.data[x + map.info.width * (y - 1)] == 0) && (map.data[x + map.info.width * (y + 1)] == 0))
+                {*/
+                    for (int i = 0; i < 2 * r_robot; i++)
+                    {
+                        if (x + i - r_robot < 0)
+                        {
+                            new_map.data[i + new_map.info.width * y] = 1;
+                            cpt_x = i;
+                        }
+                        else if (x + i - r_robot < map.info.width)
+                        {
+                            new_map.data[x + i - r_robot + new_map.info.width * y] = 1;
+                            cpt_x = x + i - r_robot;
+                        }
+                        for (int j = 0; j < 2 * r_robot; j++)
+                        {
+                            if (y + j - r_robot < 0)
+                            {
+                                new_map.data[cpt_x + new_map.info.width * j] = 1;
+                            }
+                            else if (y + j - r_robot < map.info.height)
+                            {
+                                new_map.data[cpt_x + new_map.info.width * (y + j - r_robot)] = 1;
+                            }
+                        }
+                    }
+                //}
             }
+            cout << "x = " << x << " y = " << y << endl;
         }
     }
 
@@ -46,24 +69,21 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
     
     map = map_dilatation(req.map, 10);
+    cout << "repère = " << map.header.frame_id << endl;
     ROS_INFO("We have the map!\n");
     image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
     
-    for (size_t y = 0; y < map.info.height; y++)
+    for (size_t y = 1; y < map.info.height; y++)
     {
-        for (size_t x = 0; x < map.info.width; x++)
+        for (size_t x = 1; x < map.info.width; x++)
         {
-            if (map.data[y + map.info.width * x] == -1)
+            if (map.data[x + map.info.width * y] == 0)
             {
-                image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 255, 255);
+                image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, 255, 255); // Inside map -> White
             }
-            else if (map.data[y + map.info.width * x] == 0)
+            else if (map.data[x + map.info.width * y] != 0)
             {
-                image.at<cv::Vec3b>(x, y) = cv::Vec3b(255, 255, 255);
-            }
-            else if (map.data[y + map.info.width * x] > 0)
-            {
-                image.at<cv::Vec3b>(x, y) = cv::Vec3b(0, 0, 0);
+                image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0); // Wall -> Black
             }
         }
     }
@@ -72,7 +92,8 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     // Récupérer position start et goal
     int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
     int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
-    Vertex start(start_x, 1000.0);
+
+    Vertex start(start_x, 1000);//start_y);
     Vertex goal(req.goal.translation.x, req.goal.translation.y);
 
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
