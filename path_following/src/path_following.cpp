@@ -10,6 +10,7 @@
 #include "planning/RRTPlanning.h"
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <visualization_msgs/MarkerArray.h>
 
 
 using namespace std;
@@ -19,6 +20,33 @@ Pose_2d p;
 void robCallback(const nav_msgs::Odometry& msg)
 {
 	p.init(msg);
+}
+
+void displayPath(const nav_msgs::Path& path, ros::Publisher& vis_pub)
+{
+	for (int i = 0; i < path.poses.size(); i++)
+	{
+		visualization_msgs::Marker marker;
+		marker.header.frame_id = "map";
+		marker.id = i;
+		marker.type = visualization_msgs::Marker::SPHERE;
+		marker.action = visualization_msgs::Marker::ADD;
+		marker.pose.position.x = path.poses.at(i).pose.position.x;
+		marker.pose.position.y = path.poses.at(i).pose.position.y;
+		marker.pose.position.z = 0;
+		marker.pose.orientation.x = 0;
+		marker.pose.orientation.y = 0;
+		marker.pose.orientation.z = 0;
+		marker.pose.orientation.w = 1;
+		marker.scale.x = 0.5;
+		marker.scale.y = 0.5;
+		marker.scale.z = 0.5;
+		marker.color.a = 1.0; // Don't forget to set the alpha!
+		marker.color.r = 0.0;
+		marker.color.g = 1.0;
+		marker.color.b = 0.0;
+		vis_pub.publish(marker);
+	}
 }
 
 int main(int argc, char **argv)
@@ -32,6 +60,7 @@ int main(int argc, char **argv)
     Commande cmd;
 	geometry_msgs::Transform start, goal;
 	geometry_msgs::TransformStamped transformStamped;
+	ros::Publisher vis_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 0);
 	char map_type;
 	ros::ServiceClient client;
 
@@ -81,6 +110,7 @@ int main(int argc, char **argv)
 		if (client_plan.call(srv_plan))
 		{
 			cmd.init(srv_plan.response.path);
+			displayPath(srv_plan.response.path, vis_pub);
 		}
 		else
 		{
