@@ -8,11 +8,18 @@
 #include <time.h>
 #include <stdio.h>
 #include "planning/RRTPlanning.h"
-
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
 
+
 using namespace std;
+
+Pose_2d p;
+
+void robCallback(const nav_msgs::Odometry& msg)
+{
+	p.init(msg);
+}
 
 int main(int argc, char **argv)
 {
@@ -23,28 +30,40 @@ int main(int argc, char **argv)
 	tf2_ros::TransformListener tfListener(tfBuffer);
 
     Commande cmd;
-    Pose_2d p;
 	geometry_msgs::Transform start, goal;
-
 	geometry_msgs::TransformStamped transformStamped;
-	try
+	char map_type;
+	ros::ServiceClient client;
+
+	cout << "Quelle map voulez-vous utiliser ? (static -> 1, dynamic -> 2)" << endl;
+	cin >> map_type;
+	
+	if (map_type == '1')
 	{
-		transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0), ros::Duration(100.0));
+		client = n.serviceClient<nav_msgs::GetMap>("static_map");
+		ros::Subscriber sub_rob = n.subscribe("odom", 100, robCallback);
 	}
-	catch (tf2::TransformException &ex)
+	else
 	{
-		ROS_WARN("%s",ex.what());
-		ros::Duration(1.0).sleep();
+		try
+		{
+			transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0), ros::Duration(100.0));
+			p.init(transformStamped);
+		}
+		catch (tf2::TransformException &ex)
+		{
+			ROS_WARN("%s",ex.what());
+			ros::Duration(1.0).sleep();
+		}
+		client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
 	}
-	p.init(transformStamped);
 
 	start.translation.x = p.getX();//1200.0;
 	start.translation.y = p.getY();//1000.0;
 	goal.translation.x = 0.12;
 	goal.translation.y = -7.74;
 
-    ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
-	  nav_msgs::GetMap srv;
+	nav_msgs::GetMap srv;
     nav_msgs::OccupancyGrid original_map;
 
     // Récupèrer la Map
@@ -77,31 +96,35 @@ int main(int argc, char **argv)
 
     ros::Publisher pub_cmd = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 	ros::Rate rate_path(10);
+	geometry_msgs::Twist t;
 
 
 	while(!cmd.fin() && n.ok())
 	{
-		geometry_msgs::TransformStamped transformStamped;
-		try{
-			transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0));
+		if (map_type == '2')
+		{
+			try
+			{
+				transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0));
+				p.init(transformStamped);
+			}
+			catch (tf2::TransformException &ex)
+			{
+				ROS_WARN("%s", ex.what());
+				ros::Duration(1.0).sleep();
+				continue;
+			}
 		}
-		catch (tf2::TransformException &ex) {
-			ROS_WARN("%s", ex.what());
-			ros::Duration(1.0).sleep();
-			continue;
-		}
-		p.init(transformStamped);
+		
 		vector<double> v = cmd.command_law(p.getX(), p.getY(), p.getTheta());
 
-		geometry_msgs::Twist t;
 		t.linear.x = v.at(0);
 		t.angular.z = v.at(1);
 		pub_cmd.publish(t);
 		rate_path.sleep();
 	}
-	geometry_msgs::Twist t;
-  t.linear.x = 0;
-  t.angular.z = 0;
+	t.linear.x = 0;
+	t.angular.z = 0;
 	pub_cmd.publish(t);
 
 

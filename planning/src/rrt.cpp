@@ -12,7 +12,11 @@
 #include "Dijkstra.hpp"
 #include "planning/RRTPlanning.h"
 
+#define RESO_IM 0.5
+
 using namespace std;
+
+int goal_x, goal_y;
 
 nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r_robot)
 {
@@ -42,11 +46,21 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
     return new_map;
 }
 
+void CallBackFunction(int event, int x, int y, int flags, void* userdata)
+{
+    if (event == CV_EVENT_LBUTTONDOWN)
+    {
+        goal_x = x / RESO_IM;
+        goal_y = y / RESO_IM;
+    }
+}
+
 bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlanning::Response& res)
 {
     nav_msgs::OccupancyGrid map;
     cv::Mat image;
     cv::Mat outImage;
+    cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
 
 
     map = map_dilatation(req.map, 10);
@@ -75,14 +89,21 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
     int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
 
-    int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
-    int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
-
     Vertex start(start_x, start_y);
-    Vertex goal(goal_x, goal_y);
-
+    cout << "x start = " << start_x << " y start = " << start_y << endl;
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
+
+    cvSetMouseCallback("Display Image", CallBackFunction, NULL);
+    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
+    imshow("Display Image", outImage);
+    cvWaitKey(0);
+
+    Vertex goal(goal_x, goal_y);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
+    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
+    imshow("Display Image", outImage);
+    cvWaitKey(0);
+
 
     // Construction tree
     /*Tree t = build_rrt(start, goal, map);
@@ -99,9 +120,9 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
 	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
 
-  ROS_INFO("Dijkstra Finish!\n");
+    ROS_INFO("Dijkstra Finish!\n");
 
-    cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
+    
 
 
     /*for(size_t i = 0; i < tree.size(); i++)
@@ -147,8 +168,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
         }
     }
 
-    //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
-    cv::resize(image, outImage, cv::Size(image.cols * 0.50, image.rows * 0.50), 0, 0, CV_INTER_LINEAR);
+    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
     cv::waitKey();
     cv::destroyAllWindows();
@@ -176,7 +196,6 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
     ros::ServiceServer plan = n.advertiseService("plan_srv", planning_function);
-
 
     ros::spin();
 
