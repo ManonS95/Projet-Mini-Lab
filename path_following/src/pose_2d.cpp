@@ -31,5 +31,6 @@ double Pose_2d::getTheta()
 	tf2::Matrix3x3 m(q);
 	tf2Scalar a, b;
 	m.getRPY(a, b, theta);
+	//cout << "theta : " << theta << endl;
 	return theta;
 }

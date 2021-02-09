@@ -29,22 +29,22 @@ int main(int argc, char **argv)
 	geometry_msgs::TransformStamped transformStamped;
 	try
 	{
-		transformStamped = tfBuffer.lookupTransform("odom", "base_footprint", ros::Time(0));
+		transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0), ros::Duration(100.0));
 	}
-	catch (tf2::TransformException &ex) 
+	catch (tf2::TransformException &ex)
 	{
 		ROS_WARN("%s",ex.what());
 		ros::Duration(1.0).sleep();
 	}
 	p.init(transformStamped);
-	
+
 	start.translation.x = p.getX();//1200.0;
 	start.translation.y = p.getY();//1000.0;
-	goal.translation.x = 800.0;
-	goal.translation.y = 800.0;
-	
+	goal.translation.x = 0.12;
+	goal.translation.y = -7.74;
+
     ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
-	nav_msgs::GetMap srv;
+	  nav_msgs::GetMap srv;
     nav_msgs::OccupancyGrid original_map;
 
     // Récupèrer la Map
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 		srv_plan.request.start = start;
 		srv_plan.request.goal = goal;
 		srv_plan.request.map = original_map;
-    
+
 		client_plan.waitForExistence();
 		if (client_plan.call(srv_plan))
 		{
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         ROS_ERROR("Failed to call service get_map");
         return 1;
     }
-	
+
     ros::Publisher pub_cmd = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 	ros::Rate rate_path(10);
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	{
 		geometry_msgs::TransformStamped transformStamped;
 		try{
-			transformStamped = tfBuffer.lookupTransform("odom", "base_footprint", ros::Time(0));
+			transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0));
 		}
 		catch (tf2::TransformException &ex) {
 			ROS_WARN("%s", ex.what());
@@ -100,6 +100,8 @@ int main(int argc, char **argv)
 		rate_path.sleep();
 	}
 	geometry_msgs::Twist t;
+  t.linear.x = 0;
+  t.angular.z = 0;
 	pub_cmd.publish(t);
 
 

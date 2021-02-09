@@ -18,7 +18,7 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
 {
     nav_msgs::OccupancyGrid new_map = map;
     int cpt_x;
-    
+
     for (size_t y = 0; y < map.info.height; y++)
     {
         for (size_t x = 0; x < map.info.width; x++)
@@ -48,12 +48,12 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     cv::Mat image;
     cv::Mat outImage;
 
-    
+
     map = map_dilatation(req.map, 10);
     cout << "repère = " << map.header.frame_id << endl;
     ROS_INFO("We have the map!\n");
     image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
-    
+
     for (size_t y = 1; y < map.info.height; y++)
     {
         for (size_t x = 1; x < map.info.width; x++)
@@ -68,32 +68,41 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
             }
         }
     }
+    ROS_INFO("We transform the map!\n");
 
 
     // Récupérer position start et goal
     int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
     int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
 
-    Vertex start(start_x, 1000);//start_y);
-    Vertex goal(req.goal.translation.x, req.goal.translation.y);
+    int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
+    int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
+
+    Vertex start(start_x, start_y);
+    Vertex goal(goal_x, goal_y);
 
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
-
-
 
     // Construction tree
     /*Tree t = build_rrt(start, goal, map);
     vector<Vertex> path = t.getPath(goal);
     vector<Vertex> tree = t.getTree();*/
 
+    ROS_INFO("Before rrt!\n");
+
     vector<Vertex> path = rrt_connect_planner(start, goal, map);
 
+    ROS_INFO("Before Dijkstra!\n");
+
 	Dijkstra d(path, map);
+
 	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
-		    
+
+  ROS_INFO("Dijkstra Finish!\n");
+
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-    
+
 
     /*for(size_t i = 0; i < tree.size(); i++)
     {
@@ -139,7 +148,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     }
 
     //outImage = cv::Mat(outImage, cv::Rect(10, 10, 90, 90)); // using a rectangle
-    cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
+    cv::resize(image, outImage, cv::Size(image.cols * 0.50, image.rows * 0.50), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
     cv::waitKey();
     cv::destroyAllWindows();
@@ -150,7 +159,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     for(size_t i = 0; i < path_simplifie.size(); i++)
     {
         geometry_msgs::PoseStamped pt;
-        
+
         pt.pose.position.x = path_simplifie.at(i).getPosPix()[0] * map.info.resolution + map.info.origin.position.x;
         pt.pose.position.y = path_simplifie.at(i).getPosPix()[1] * map.info.resolution + map.info.origin.position.y;
 		pt.pose.position.z = map.info.origin.position.z;
@@ -167,7 +176,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
     ros::ServiceServer plan = n.advertiseService("plan_srv", planning_function);
-    
+
 
     ros::spin();
 

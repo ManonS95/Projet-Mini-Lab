@@ -5,7 +5,7 @@
 Pid::Pid(double Kp, double Ki, double Kd, double saturation, double dt) : Kp(Kp), Ki(Ki), Kd(Kd), saturation(saturation), dt(dt)
 {
 	pre_e = 0;
-	sum_e = 0;	
+	sum_e = 0;
 }
 
 double Pid::correcteur(double erreur)
@@ -21,5 +21,5 @@ double Pid::correcteur(double erreur)
 	double de = (erreur - pre_e)/dt;
 	double gain = Kp*erreur + Ki * sum_e + Kd * de;
 	pre_e = erreur;
-	return gain;
+	return (gain>saturation)?saturation:gain;
 }

@@ -1,13 +1,13 @@
 #include "commande.hpp"
 
-#define PI 3.141592 
+#define PI 3.141592
 
 using namespace std;
 
-Commande::Commande() : pid(1.0, 0.0, 0.0, 0.0, 0.01), threshold(0.1), u1(0.5)
+Commande::Commande() : pid(1.0, 0.0, 0.0, PI/2, 0.01), threshold(0.1), u1(0.5)
 {}
 
-Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(1), pid(1, 0, 0, 0, 0.01)
+Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(1), pid(1, 0, 0, PI/2, 0.01)
 {
     init(path);
 
@@ -25,7 +25,9 @@ double Commande::theta_error(double theta)
 	double x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
 
 	double theta_c = atan2(y, x);
-	return theta_c - theta;
+  double theta_e = (theta_c - theta);
+	return atan2(sin(theta_e), cos(theta_e));
+
 }
 
 double Commande::distance(double x, double y)
@@ -70,8 +72,9 @@ double Commande::K(double d, double theta_e)
 double Commande::mot_command(double x, double y, double theta)
 {
 	double theta_e = theta_error(theta);
+  cout << "theta_e : " << theta_e << endl;
 	double d = distance(x, y);
-	return - u1 / cos(theta_e) * (sin(theta_e) + K(d,theta_e) * d);
+	return (u1 / cos(theta_e)) * (sin(theta_e) + K(d,theta_e) * d);
 }
 
 vector<double> Commande::command_law(double x, double y, double theta)
@@ -83,19 +86,21 @@ vector<double> Commande::command_law(double x, double y, double theta)
 	if(abs(theta_e) < PI/2)
 	{
 		u2 = mot_command(x, y, theta);
+    u1 = 0.5;
 	}
 	else
 	{
 		u2 = pid.correcteur(theta_e);
+    u1 = 0;
 	}
 
 	if(verification(x, y))
 	{
-		ind++;	
+		ind++;
 	}
 	u.at(0) = u1;
-	u.at(1) = -u2;
-	return u;	
+	u.at(1) = u2;
+	return u;
 }
 
 bool Commande::verification(double x, double y)

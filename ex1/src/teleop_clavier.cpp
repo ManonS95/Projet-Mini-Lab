@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#define V 0.5
+#define V 2
 
 geometry_msgs::Twist action(char ch)
 {
@@ -29,7 +29,7 @@ geometry_msgs::Twist action(char ch)
 	{
 		twist.angular.z = -V;
 	}
-	
+
 	return twist;
 }
 
@@ -39,28 +39,28 @@ int kbhit()
   struct termios oldt, newt;
   int ch;
   int oldf;
- 
+
   tcgetattr(STDIN_FILENO, &oldt);
   newt = oldt;
   newt.c_lflag &= ~(ICANON | ECHO);
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
   oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
   fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
- 
+
   ch = getchar();
- 
+
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
   fcntl(STDIN_FILENO, F_SETFL, oldf);
- 
+
   if(ch != EOF)
   {
     ungetc(ch, stdin);
     return 1;
   }
- 
+
   return 0;
 }
-    
+
 
 
 int main(int argc, char** argv)
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
   	ros::Publisher vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 	char choice;
 	geometry_msgs::Twist twist;
-	
+
 	while(1)
 	{
         if( kbhit() )
@@ -81,8 +81,6 @@ int main(int argc, char** argv)
 		}
 	}
 	ros::spin();
-	
+
 	return 0;
 }
-
-
