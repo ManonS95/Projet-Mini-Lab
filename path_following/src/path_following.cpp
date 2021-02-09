@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	goal.translation.x = 800.0;
 	goal.translation.y = 800.0;
 	
-    ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("static_map");
+    ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
 	nav_msgs::GetMap srv;
     nav_msgs::OccupancyGrid original_map;
 

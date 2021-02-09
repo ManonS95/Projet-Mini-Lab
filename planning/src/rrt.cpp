@@ -18,43 +18,24 @@ nav_msgs::OccupancyGrid map_dilatation(const nav_msgs::OccupancyGrid &map, int r
 {
     nav_msgs::OccupancyGrid new_map = map;
     int cpt_x;
-
     
-    for (size_t y = 1; y < map.info.height; y++)
+    for (size_t y = 0; y < map.info.height; y++)
     {
-        for (size_t x = 1; x < map.info.width; x++)
+        for (size_t x = 0; x < map.info.width; x++)
         {
             if (map.data[x + map.info.width * y] != 0) // Si le pixel est noir
             {
-                /*if ((map.data[x - 1 + map.info.width * y] == 0) || (map.data[x + 1 + map.info.width * y] == 0) && (map.data[x + map.info.width * (y - 1)] == 0) && (map.data[x + map.info.width * (y + 1)] == 0))
-                {*/
-                    for (int i = 0; i < 2 * r_robot; i++)
-                    {
-                        if (x + i - r_robot < 0)
-                        {
-                            new_map.data[i + new_map.info.width * y] = 1;
-                            cpt_x = i;
-                        }
-                        else if (x + i - r_robot < map.info.width)
-                        {
-                            new_map.data[x + i - r_robot + new_map.info.width * y] = 1;
-                            cpt_x = x + i - r_robot;
-                        }
-                        for (int j = 0; j < 2 * r_robot; j++)
-                        {
-                            if (y + j - r_robot < 0)
-                            {
-                                new_map.data[cpt_x + new_map.info.width * j] = 1;
-                            }
-                            else if (y + j - r_robot < map.info.height)
-                            {
-                                new_map.data[cpt_x + new_map.info.width * (y + j - r_robot)] = 1;
-                            }
-                        }
-                    }
-                //}
+            	for (int i = -r_robot; i <=r_robot; i++)
+                {
+                	for (int j = -r_robot; j <=r_robot; j++)
+                	{
+                		if(!(y+i<0 || x+j<0 || y+i>=map.info.height || x+j>=map.info.width))
+                		{
+                			new_map.data[(x+j) + new_map.info.width * (y+i)] = 1;
+                		}
+                	}
+               	}
             }
-            cout << "x = " << x << " y = " << y << endl;
         }
     }
 
