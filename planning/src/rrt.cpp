@@ -12,7 +12,7 @@
 #include "Dijkstra.hpp"
 #include "planning/RRTPlanning.h"
 
-#define RESO_IM 0.5
+#define RESO_IM 0.45
 
 using namespace std;
 
@@ -122,7 +122,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
     ROS_INFO("Dijkstra Finish!\n");
 
-    
+
 
 
     /*for(size_t i = 0; i < tree.size(); i++)

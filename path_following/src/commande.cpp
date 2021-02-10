@@ -4,13 +4,12 @@
 
 using namespace std;
 
-Commande::Commande() : pid(1.0, 0.0, 0.0, PI/2, 0.01), threshold(0.1), u1(0.5)
+Commande::Commande() : pid(1.0, 0.0, 0.0, PI/2, 0.01), threshold(0.1), u1(0.2), ind(0), l1(1)
 {}
 
-Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(1), pid(1, 0, 0, PI/2, 0.01)
+Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(0.2), pid(1, 0, 0, PI/2, 0.01), ind(0), l1(1)
 {
     init(path);
-
 }
 
 double Commande::theta_error(double theta)
@@ -25,32 +24,30 @@ double Commande::theta_error(double theta)
 	double x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
 
 	double theta_c = atan2(y, x);
-  double theta_e = (theta_c - theta);
+  double theta_e = theta - theta_c;
 	return atan2(sin(theta_e), cos(theta_e));
-
 }
 
 double Commande::distance(double x, double y)
 {
-	size_t n = ind;
-	if(n >= path.poses.size())
-	{
-		n = path.poses.size()-2;
-	}
-	double n_y = path.poses.at(n+1).pose.position.y - path.poses.at(n).pose.position.y;
-	double n_x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
-    double n_norm = (n_x * n_x + n_y * n_y);
+  	size_t n = ind;
+  	if(n >= path.poses.size())
+  	{
+  		n = path.poses.size()-2;
+  	}
+  	double t_y = path.poses.at(n+1).pose.position.y - path.poses.at(n).pose.position.y;
+  	double t_x = path.poses.at(n+1).pose.position.x - path.poses.at(n).pose.position.x;
+    double t_norm = sqrt(t_x * t_x + t_y * t_y);
+
+    double n_x = - t_y / t_norm;
+    double n_y = t_x / t_norm;
 
     double p_x = x - path.poses.at(n).pose.position.x;
     double p_y = y - path.poses.at(n).pose.position.y;
 
-    double p_proj_x = (n_x * p_x + n_y * p_y) * n_x / n_norm;
-    double p_proj_y = (n_x * p_x + n_y * p_y) * n_y / n_norm;
-
-    double d_x = p_proj_x - p_x;
-    double d_y = p_proj_y - p_y;
-
-    return sqrt(d_x * d_x +  d_y * d_y);
+    double d = n_x * p_x + n_y * p_y;
+    cout << d << endl;
+    return d;
 }
 
 void Commande::init(const nav_msgs::Path& path)
@@ -72,9 +69,8 @@ double Commande::K(double d, double theta_e)
 double Commande::mot_command(double x, double y, double theta)
 {
 	double theta_e = theta_error(theta);
-  cout << "theta_e : " << theta_e << endl;
 	double d = distance(x, y);
-	return (u1 / cos(theta_e)) * (sin(theta_e) + K(d,theta_e) * d);
+	return -(u1 * tan(theta_e)) / l1 - (K(d, theta_e) * d) / cos(theta_e);
 }
 
 vector<double> Commande::command_law(double x, double y, double theta)
@@ -83,7 +79,7 @@ vector<double> Commande::command_law(double x, double y, double theta)
 	double u2 = 0;
 	double theta_e = theta_error(theta);
 
-	if(abs(theta_e) < PI/2)
+	if(abs(theta_e) < PI/2-0.1)
 	{
 		u2 = mot_command(x, y, theta);
     u1 = 0.5;
@@ -124,7 +120,7 @@ bool Commande::verification(double x, double y)
 
 bool Commande::fin()
 {
-	if(ind > path.poses.size()-1)
+	if(ind+1 >= path.poses.size())
 	{
 		return true;
 	}

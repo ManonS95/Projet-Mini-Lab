@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Pose_2d::Pose_2d(): x(0), y(0), theta(0)
+Pose_2d::Pose_2d(): x(0), y(0), theta(0), l1(1)
 {}
 
 void Pose_2d::init(const geometry_msgs::TransformStamped& pose)
@@ -24,12 +24,14 @@ void Pose_2d::init(const nav_msgs::Odometry& pose)
 
 double Pose_2d::getX()
 {
-	return x;
+	theta = getTheta();
+	return x + l1*cos(theta);
 }
 
 double Pose_2d::getY()
 {
-	return y;
+	theta = getTheta();
+	return y  + l1*sin(theta);
 }
 
 double Pose_2d::getTheta()

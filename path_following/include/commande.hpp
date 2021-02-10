@@ -28,6 +28,7 @@ class Commande {
 		double threshold;
 		size_t ind;
 		double u1;
+		double l1;
 };
 
 #endif //COMMANDE_HPP

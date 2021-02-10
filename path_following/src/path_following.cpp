@@ -24,29 +24,31 @@ void robCallback(const nav_msgs::Odometry& msg)
 
 void displayPath(const nav_msgs::Path& path, ros::Publisher& vis_pub)
 {
+	visualization_msgs::MarkerArray marker_array_msg;
+	marker_array_msg.markers.resize(path.poses.size());
 	for (int i = 0; i < path.poses.size(); i++)
 	{
-		visualization_msgs::Marker marker;
-		marker.header.frame_id = "map";
-		marker.id = i;
-		marker.type = visualization_msgs::Marker::SPHERE;
-		marker.action = visualization_msgs::Marker::ADD;
-		marker.pose.position.x = path.poses.at(i).pose.position.x;
-		marker.pose.position.y = path.poses.at(i).pose.position.y;
-		marker.pose.position.z = 0;
-		marker.pose.orientation.x = 0;
-		marker.pose.orientation.y = 0;
-		marker.pose.orientation.z = 0;
-		marker.pose.orientation.w = 1;
-		marker.scale.x = 0.5;
-		marker.scale.y = 0.5;
-		marker.scale.z = 0.5;
-		marker.color.a = 1.0; // Don't forget to set the alpha!
-		marker.color.r = 0.0;
-		marker.color.g = 1.0;
-		marker.color.b = 0.0;
-		vis_pub.publish(marker);
+		marker_array_msg.markers[i].header.frame_id = "map";
+		marker_array_msg.markers[i].header.stamp = ros::Time();
+		marker_array_msg.markers[i].id = i;
+		marker_array_msg.markers[i].type = visualization_msgs::Marker::SPHERE;
+		marker_array_msg.markers[i].action = visualization_msgs::Marker::ADD;
+		marker_array_msg.markers[i].pose.position.x = path.poses.at(i).pose.position.x;
+		marker_array_msg.markers[i].pose.position.y = path.poses.at(i).pose.position.y;
+		marker_array_msg.markers[i].pose.position.z = 0;
+		marker_array_msg.markers[i].pose.orientation.x = 0;
+		marker_array_msg.markers[i].pose.orientation.y = 0;
+		marker_array_msg.markers[i].pose.orientation.z = 0;
+		marker_array_msg.markers[i].pose.orientation.w = 1;
+		marker_array_msg.markers[i].scale.x = 0.5;
+		marker_array_msg.markers[i].scale.y = 0.5;
+		marker_array_msg.markers[i].scale.z = 0.5;
+		marker_array_msg.markers[i].color.a = 1.0; // Don't forget to set the alpha!
+		marker_array_msg.markers[i].color.r = 253/255.;
+		marker_array_msg.markers[i].color.g = 108/255.;
+		marker_array_msg.markers[i].color.b = 158/255.;
 	}
+	vis_pub.publish(marker_array_msg);
 }
 
 int main(int argc, char **argv)
@@ -61,12 +63,13 @@ int main(int argc, char **argv)
 	geometry_msgs::Transform start, goal;
 	geometry_msgs::TransformStamped transformStamped;
 	ros::Publisher vis_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 0);
+
 	char map_type;
 	ros::ServiceClient client;
 
 	cout << "Quelle map voulez-vous utiliser ? (static -> 1, dynamic -> 2)" << endl;
 	cin >> map_type;
-	
+
 	if (map_type == '1')
 	{
 		client = n.serviceClient<nav_msgs::GetMap>("static_map");
@@ -145,7 +148,7 @@ int main(int argc, char **argv)
 				continue;
 			}
 		}
-		
+
 		vector<double> v = cmd.command_law(p.getX(), p.getY(), p.getTheta());
 
 		t.linear.x = v.at(0);

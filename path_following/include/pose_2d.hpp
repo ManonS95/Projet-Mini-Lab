@@ -14,6 +14,7 @@ class Pose_2d
 		double x;
 		double y;
 		double theta;
+		double l1;
 		geometry_msgs::Quaternion quat;
 		geometry_msgs::Transform pose;
 
