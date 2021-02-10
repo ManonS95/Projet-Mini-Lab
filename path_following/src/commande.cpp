@@ -101,14 +101,19 @@ vector<double> Commande::command_law(double x, double y, double theta)
 
 bool Commande::verification(double x, double y)
 {
-	if(ind+1 >= path.poses.size())
-	{
-		return false;
-	}
-	double n_y = path.poses.at(ind+1).pose.position.y - y;
-	double n_x = path.poses.at(ind+1).pose.position.x - x;
-    double n_norm = sqrt(n_x * n_x + n_y * n_y);
-    if(n_norm < threshold)
+  	if(ind+1 >= path.poses.size())
+  	{
+  		return false;
+  	}
+  	double p_x = x - path.poses.at(ind+1).pose.position.x;
+    double p_y = y - path.poses.at(ind+1).pose.position.y;
+
+    double n_x = path.poses.at(ind).pose.position.x - path.poses.at(ind+1).pose.position.x;
+    double n_y = path.poses.at(ind).pose.position.y - path.poses.at(ind+1).pose.position.y;
+
+    double scal = p_x * n_x + p_y * n_y;
+
+    if(scal < 0)
     {
     	return true;
     }
