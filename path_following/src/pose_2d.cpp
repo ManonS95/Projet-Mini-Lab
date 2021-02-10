@@ -43,3 +43,8 @@ double Pose_2d::getTheta()
 	//cout << "theta : " << theta << endl;
 	return theta;
 }
+
+geometry_msgs::Transform Pose_2d::getPose()
+{
+	return pose;
+}

@@ -88,6 +88,8 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     // Récupérer position start et goal
     int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
     int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
+    int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
+    int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
 
     Vertex start(start_x, start_y);
     cout << "x start = " << start_x << " y start = " << start_y << endl;
@@ -116,9 +118,9 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
     ROS_INFO("Before Dijkstra!\n");
 
-	Dijkstra d(path, map);
+  	Dijkstra d(path, map);
 
-	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
+  	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
 
     ROS_INFO("Dijkstra Finish!\n");
 

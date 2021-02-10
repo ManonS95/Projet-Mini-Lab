@@ -25,6 +25,7 @@ class Pose_2d
 		double getX();
 		double getY();
 		double getTheta();
+		geometry_msgs::Transform getPose();
 };
 
 #endif //POSE_2D_HPP
