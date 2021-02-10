@@ -64,7 +64,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
 
     map = map_dilatation(req.map, 10);
-    cout << "repère = " << map.header.frame_id << endl;
+    /*cout << "repère = " << map.header.frame_id << endl;
     ROS_INFO("We have the map!\n");
     image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
 
@@ -81,18 +81,19 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
                 image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0); // Wall -> Black
             }
         }
-    }
+    }*/
     ROS_INFO("We transform the map!\n");
 
 
-    // Récupérer position start et goal
+    // Récupérer positions start et goal
     int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
     int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
     int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
     int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
 
     Vertex start(start_x, start_y);
-    cout << "x start = " << start_x << " y start = " << start_y << endl;
+    Vertex goal(goal_x, goal_y);
+    /*cout << "x start = " << start_x << " y start = " << start_y << endl;
     cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
 
     cvSetMouseCallback("Display Image", CallBackFunction, NULL);
@@ -104,7 +105,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
     cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
-    cvWaitKey(0);
+    cvWaitKey(0);*/
 
 
     // Construction tree
@@ -142,7 +143,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
         cv::waitKey(100);
     }*/
 
-    for(size_t i = 0; i < path.size(); i++)
+    /*for(size_t i = 0; i < path.size(); i++)
     {
         cv::Point p(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
         cv::circle(image, p, 10, cv::Scalar(0, 255, 0), -1);
@@ -173,7 +174,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
     imshow("Display Image", outImage);
     cv::waitKey();
-    cv::destroyAllWindows();
+    cv::destroyAllWindows();*/
 
 
     // Conversion px/m
