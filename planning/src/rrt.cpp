@@ -12,7 +12,10 @@
 #include "Dijkstra.hpp"
 #include "planning/RRTPlanning.h"
 
-#define RESO_IM 0.45
+#define RESO_IM 0.35
+#define METHODO 2
+#define AFFICHAGE 0
+#define STATIC 0
 
 using namespace std;
 
@@ -58,124 +61,124 @@ void CallBackFunction(int event, int x, int y, int flags, void* userdata)
 bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlanning::Response& res)
 {
     nav_msgs::OccupancyGrid map;
+
+    map = map_dilatation(req.map, 10);
+
     cv::Mat image;
     cv::Mat outImage;
     cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-
-
-    map = map_dilatation(req.map, 10);
-    /*cout << "repère = " << map.header.frame_id << endl;
-    ROS_INFO("We have the map!\n");
     image = cv::Mat(map.info.height, map.info.width, CV_8UC3, cv::Scalar::all(0));
 
-    for (size_t y = 1; y < map.info.height; y++)
+    if(AFFICHAGE)
     {
-        for (size_t x = 1; x < map.info.width; x++)
-        {
-            if (map.data[x + map.info.width * y] == 0)
-            {
-                image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, 255, 255); // Inside map -> White
-            }
-            else if (map.data[x + map.info.width * y] != 0)
-            {
-                image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0); // Wall -> Black
-            }
-        }
-    }*/
-    ROS_INFO("We transform the map!\n");
+      for (size_t y = 1; y < map.info.height; y++)
+      {
+          for (size_t x = 1; x < map.info.width; x++)
+          {
+              if (map.data[x + map.info.width * y] == 0)
+              {
+                  image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, 255, 255); // Inside map -> White
+              }
+              else if (map.data[x + map.info.width * y] != 0)
+              {
+                  image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, 0); // Wall -> Black
+              }
+          }
+      }
+    }
 
-
+    Vertex start, goal;
     // Récupérer positions start et goal
-    int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
-    int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
-    int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
-    int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
-
-    Vertex start(start_x, start_y);
-    Vertex goal(goal_x, goal_y);
-    /*cout << "x start = " << start_x << " y start = " << start_y << endl;
-    cv::circle(image, cv::Point(start.getPosPix()[0], start.getPosPix()[1]), 10, cv::Scalar(255, 0, 0), -1);
-
-    cvSetMouseCallback("Display Image", CallBackFunction, NULL);
-    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
-    imshow("Display Image", outImage);
-    cvWaitKey(0);
-
-    Vertex goal(goal_x, goal_y);
-    cv::circle(image, cv::Point(goal.getPosPix()[0], goal.getPosPix()[1]), 10, cv::Scalar(0, 255, 0), -1);
-    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
-    imshow("Display Image", outImage);
-    cvWaitKey(0);*/
+    if (STATIC == 0)
+    {
+      int start_x = round((req.start.translation.x - map.info.origin.position.x) / map.info.resolution);
+      int start_y = round((req.start.translation.y - map.info.origin.position.y) / map.info.resolution);
+      int goal_x = round((req.goal.translation.x - map.info.origin.position.x) / map.info.resolution);
+      int goal_y = round((req.goal.translation.y - map.info.origin.position.y) / map.info.resolution);
+      start = Vertex(start_x, start_y);
+      goal = Vertex(goal_x, goal_y);
+    }
+    else
+    {
+      start = Vertex(1200, 1000);
+      goal = Vertex(800, 800);
+      cv::Point ps(start.getPosPix()[0], start.getPosPix()[1]);
+      cv::Point pg(goal.getPosPix()[0], goal.getPosPix()[1]);
+      cv::circle(image, ps, 10, cv::Scalar(255, 0, 0), -1);
+      cv::circle(image, pg, 10, cv::Scalar(255, 0, 0), -1);
+    }
 
 
-    // Construction tree
-    /*Tree t = build_rrt(start, goal, map);
-    vector<Vertex> path = t.getPath(goal);
-    vector<Vertex> tree = t.getTree();*/
 
-    ROS_INFO("Before rrt!\n");
+    vector<Vertex> path;
 
-    vector<Vertex> path = rrt_connect_planner(start, goal, map);
+    if(METHODO == 1) // rrt_build
+    {
+      Tree t = build_rrt(start, goal, map);
+      path = t.getPath(goal);
+      vector<Vertex> tree = t.getTree();
 
-    ROS_INFO("Before Dijkstra!\n");
+      // Affichage
+      if(AFFICHAGE)
+      {
+        for(size_t i = 0; i < tree.size(); i++)
+        {
+            cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
+            cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
 
+            // On relie le nouveau point à son parent
+            if (tree.at(i).getParentInd() >= 0)
+            {
+                cv::line(image, cv::Point(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]), cv::Point(tree.at(tree.at(i).getParentInd()).getPosPix()[0], tree.at(tree.at(i).getParentInd()).getPosPix()[1]), cv::Scalar(0, 0, 0), 1);
+            }
+            cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
+            imshow("Display Image", outImage);
+            cv::waitKey(100);
+        }
+      }
+    }
+    else if(METHODO == 2) // rrt_connect
+    {
+      path = rrt_connect_planner(start, goal, map);
+    }
   	Dijkstra d(path, map);
-
   	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
 
-    ROS_INFO("Dijkstra Finish!\n");
-
-
-
-
-    /*for(size_t i = 0; i < tree.size(); i++)
+    if(AFFICHAGE)
     {
-        cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
-        cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
+      for(size_t i = 0; i < path.size(); i++)
+      {
+          cv::Point p(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
+          cv::circle(image, p, 10, cv::Scalar(0, 255, 0), -1);
 
-        // On relie le nouveau point à son parent
-        if (tree.at(i).getParentInd() >= 0)
-        {
-            cv::line(image, cv::Point(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]), cv::Point(tree.at(tree.at(i).getParentInd()).getPosPix()[0], tree.at(tree.at(i).getParentInd()).getPosPix()[1]), cv::Scalar(0, 0, 0), 1);
-        }
-        cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
-        imshow("Display Image", outImage);
-        cv::waitKey(100);
-    }*/
+          // On relie les points entre eux
+          if (i > 0)
+          {
+              cv::Point p1(path.at(i-1).getPosPix()[0], path.at(i-1).getPosPix()[1]);
+              cv::Point p2(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
+              cv::line(image, p1, p2, cv::Scalar(50, 50, 0), 1);
+          }
+      }
 
-    /*for(size_t i = 0; i < path.size(); i++)
-    {
-        cv::Point p(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
-        cv::circle(image, p, 10, cv::Scalar(0, 255, 0), -1);
+      for(size_t i = 0; i < path_simplifie.size(); i++)
+      {
+          cv::Point p(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
+          cv::circle(image, p, 10, cv::Scalar(255, 0, 0), -1);
 
-        // On relie les points entre eux
-        if (i > 0)
-        {
-            cv::Point p1(path.at(i-1).getPosPix()[0], path.at(i-1).getPosPix()[1]);
-            cv::Point p2(path.at(i).getPosPix()[0], path.at(i).getPosPix()[1]);
-            cv::line(image, p1, p2, cv::Scalar(50, 50, 0), 1);
-        }
+          // On relie les points entre eux
+          if (i > 0)
+          {
+              cv::Point p1(path_simplifie.at(i-1).getPosPix()[0], path_simplifie.at(i-1).getPosPix()[1]);
+              cv::Point p2(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
+              cv::line(image, p1, p2, cv::Scalar(0, 50, 50), 1);
+          }
+      }
+
+      cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
+      imshow("Display Image", outImage);
+      cv::waitKey();
+      cv::destroyAllWindows();
     }
-
-    for(size_t i = 0; i < path_simplifie.size(); i++)
-    {
-        cv::Point p(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
-        cv::circle(image, p, 10, cv::Scalar(255, 0, 0), -1);
-
-        // On relie les points entre eux
-        if (i > 0)
-        {
-            cv::Point p1(path_simplifie.at(i-1).getPosPix()[0], path_simplifie.at(i-1).getPosPix()[1]);
-            cv::Point p2(path_simplifie.at(i).getPosPix()[0], path_simplifie.at(i).getPosPix()[1]);
-            cv::line(image, p1, p2, cv::Scalar(0, 50, 50), 1);
-        }
-    }
-
-    cv::resize(image, outImage, cv::Size(image.cols * RESO_IM, image.rows * RESO_IM), 0, 0, CV_INTER_LINEAR);
-    imshow("Display Image", outImage);
-    cv::waitKey();
-    cv::destroyAllWindows();*/
-
 
     // Conversion px/m
     nav_msgs::Path real_path;
@@ -185,7 +188,7 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
 
         pt.pose.position.x = path_simplifie.at(i).getPosPix()[0] * map.info.resolution + map.info.origin.position.x;
         pt.pose.position.y = path_simplifie.at(i).getPosPix()[1] * map.info.resolution + map.info.origin.position.y;
-		pt.pose.position.z = map.info.origin.position.z;
+		    pt.pose.position.z = map.info.origin.position.z;
         real_path.poses.push_back(pt);
     }
     res.path = real_path;

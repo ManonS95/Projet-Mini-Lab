@@ -9,7 +9,7 @@
 #define LIMITS 1000
 
 /**
-* Implementation inspired by : 
+* Implementation inspired by :
 * http://www.kuffner.org/james/papers/kuffner_icra2000.pdf
 */
 
@@ -28,13 +28,13 @@ class Tree
 		std::vector<Vertex> getTree() const;
 		std::vector<Vertex> getPath(const Vertex &q_goal) const;
 		std::vector<Vertex> getPath(const Tree &t_goal) const;
-		
+
 		// Method
 		Return extend(const Vertex &q, const nav_msgs::OccupancyGrid &map);
 		Return connect(const Vertex &q, const nav_msgs::OccupancyGrid &map);
 		Vertex nearestNeighbor(const Vertex &q) const;
 		void addVertex(const Vertex &q);
-		
+
 	private :
 		std::vector<Vertex> vect_v;
 };

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-Pose_2d::Pose_2d(): x(0), y(0), theta(0), l1(1)
+Pose_2d::Pose_2d(): x(0), y(0), theta(0), l1(0.1)
 {}
 
 void Pose_2d::init(const geometry_msgs::TransformStamped& pose)

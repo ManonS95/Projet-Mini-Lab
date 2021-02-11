@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<include file="$(find minilab_simulation)/launch/minilab_simulation.launch"/>
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping"/>
+	<node pkg="ex1" type="teleop_clavier" name="teleop_clavier"/>
+	<node pkg="planning" type="rrt_node" name="rrt_node"/>
+	<node pkg="path_following" type="path_following_node" name="path_following_node"/>
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find path_following)/rviz/config_project.rviz"/>
+</launch>

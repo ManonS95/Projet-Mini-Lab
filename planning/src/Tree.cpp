@@ -51,10 +51,10 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 			cerr << e.what() << endl;
 			exit(-1);
 		}
-		
+
 		q_new.setParentInd(ind);
 		this->addVertex(q_new);
-		
+
 		if (q_new == q)
 		{
 			res = Return::Reached;
@@ -66,7 +66,7 @@ Return Tree::extend(const Vertex &q, const nav_msgs::OccupancyGrid &map)
 	}
 	else
 	{
-		res = Return::Trapped;	
+		res = Return::Trapped;
 	}
 	return res;
 }
@@ -115,11 +115,11 @@ vector<Vertex> Tree::getPath(const Tree &t_goal) const
 {
 	vector<Vertex> path_a = this->getPath(this->getLast());
 	vector<Vertex> path_b = t_goal.getPath(t_goal.getLast());
-	
+
 	reverse(path_b.begin(), path_b.end());
 	path_a.pop_back();
 	path_a.insert(path_a.end(), path_b.begin(), path_b.end());
-	
+
 	return path_a;
 }
 
@@ -139,7 +139,7 @@ Vertex Tree::nearestNeighbor(const Vertex &q) const
 			dist_min = dist_temp;
 		}
 	}
-	
+
 	return q_near;
 }
 
@@ -209,7 +209,7 @@ std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, c
 			}
 		}
 		swap(t_a, t_b);
-		
+
 	} while (i < LIMITS);
 	cout<<"Path not found -> Limit too short!"<<endl;
 	exit(1);

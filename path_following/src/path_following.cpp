@@ -15,6 +15,7 @@
 
 
 using namespace std;
+#define STATIC 0
 
 Pose_2d p;
 
@@ -65,24 +66,33 @@ int main(int argc, char **argv)
 	tf2_ros::Buffer tfBuffer;
 	tf2_ros::TransformListener tfListener(tfBuffer);
 
-  	Commande cmd;
+  Commande cmd;
 	geometry_msgs::Transform start, goal, parking;
 	geometry_msgs::TransformStamped transformStamped;
-	ros::Publisher vis_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 0);
-	ros::Publisher vis_point_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 0);
-	boost::shared_ptr<geometry_msgs::PointStamped const> sharedPoint;
-	geometry_msgs::PointStamped point;
-	sharedPoint = ros::topic::waitForMessage<geometry_msgs::PointStamped>("/clicked_point", n);
+	ros::Publisher vis_pub;
+	ros::Publisher vis_point_pub;
 	visualization_msgs::MarkerArray marker_array_msg;
-	if(sharedPoint != NULL)
+	geometry_msgs::PointStamped point;
+	ros::ServiceClient client;
+	if (STATIC == 0)
 	{
-		point = *sharedPoint;
+		vis_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 0);
+		vis_point_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 0);
+		boost::shared_ptr<geometry_msgs::PointStamped const> sharedPoint;
+		sharedPoint = ros::topic::waitForMessage<geometry_msgs::PointStamped>("/clicked_point", n);
+
+		if(sharedPoint != NULL)
+		{
+			point = *sharedPoint;
+		}
+		client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
 	}
-	ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("dynamic_map");
+	else
+		client = n.serviceClient<nav_msgs::GetMap>("static_map");
 
 	try
 	{
-		transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0), ros::Duration(100.0));
+		transformStamped = tfBuffer.lookupTransform("map", "base_footprint", ros::Time(0), ros::Duration(10.0));
 		p.init(transformStamped);
 	}
 	catch (tf2::TransformException &ex)
@@ -97,8 +107,6 @@ int main(int argc, char **argv)
 	goal.translation.y = point.point.y;
 	parking.translation.x = 0;
 	parking.translation.y = 0;
-	
-
 
 	nav_msgs::GetMap srv;
     nav_msgs::OccupancyGrid original_map;
@@ -173,8 +181,8 @@ int main(int argc, char **argv)
 	}
 	start.translation.x = p.getX();
 	start.translation.y = p.getY();
-	
-	
+
+
 	cout << "Retour à la position de parking" << endl;
 	// Récupèrer la Map
     /*client.waitForExistence();

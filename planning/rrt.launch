@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-	<arg name="map" default="buvette" />
-
-	<node pkg="map_server" type="map_server" name="map_server" args="$(find minilab_simulation)/map/$(arg map).yaml"/>
-	<node pkg="planning" type="rrt_node" name="rrt_node"/>
-
-</launch>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+	<!--<arg name="map_l" default="buvette" />
+	<include file="$(find minilab_simulation)/launch/minilab_simulation.launch">
+		<arg name="map" value="$(arg map_l)" />
+	</include>-->
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping"/>
+	<node pkg="ex1" type="teleop_clavier" name="teleop_clavier"/>
+	<node pkg="planning" type="rrt_node" name="rrt_node"/>
+	<node pkg="path_following" type="path_following_node" name="path_following_node"/>
+</launch>

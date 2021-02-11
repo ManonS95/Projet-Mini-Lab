@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-#define V 2
+#define V 0.5
 
 geometry_msgs::Twist action(char ch)
 {

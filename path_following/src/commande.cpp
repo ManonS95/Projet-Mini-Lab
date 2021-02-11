@@ -4,10 +4,10 @@
 
 using namespace std;
 
-Commande::Commande() : pid(1.0, 0.0, 0.0, PI/2, 0.01), threshold(0.1), u1(0.2), ind(0), l1(1)
+Commande::Commande() : pid(1.0, 0.0, 0.0, PI/2, 0.01), threshold(0.1), u1(0.2), ind(0), l1(0.1)
 {}
 
-Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(0.2), pid(1, 0, 0, PI/2, 0.01), ind(0), l1(1)
+Commande::Commande(nav_msgs::Path path) : threshold(0.1), u1(0.2), pid(1, 0, 0, PI/2, 0.01), ind(0), l1(0.1)
 {
     init(path);
 }
