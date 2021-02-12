@@ -40,6 +40,6 @@ class Tree
 };
 
 Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
-std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map);
+std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map, Tree &t_a, Tree &t_b);
 
 #endif // TREE_HPP

@@ -15,7 +15,7 @@
 
 
 using namespace std;
-#define STATIC 0
+#define STATIC 1
 
 Pose_2d p;
 

@@ -182,33 +182,55 @@ Tree build_rrt(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyG
 	return t;
 }
 
-std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map)
+std::vector<Vertex> rrt_connect_planner(const Vertex &q_start, Vertex &q_goal, const nav_msgs::OccupancyGrid &map, Tree &t_a, Tree &t_b)
 {
-	Tree t_a = Tree(q_start);
-	Tree t_b = Tree(q_goal);
 	Vertex q_rand, q_last;
+	bool tree = true;
 
 	int i = 0;
 	do
 	{
 		q_rand = randVertex(map.info.width, map.info.height);
-		if (t_a.extend(q_rand, map) != Return::Trapped)
+		if (tree == true)
 		{
-			q_last = t_a.getLast();
-			i++;
-			if (t_b.connect(q_last, map) == Return::Reached)
+			if (t_a.extend(q_rand, map) != Return::Trapped)
 			{
-				if (t_a.getTree().at(0) == q_start)
+				q_last = t_a.getLast();
+				i++;
+				if (t_b.connect(q_last, map) == Return::Reached)
 				{
-					return t_a.getPath(t_b);
-				}
-				else
-				{
-					return t_b.getPath(t_a);
+					if (t_a.getTree().at(0) == q_start)
+					{
+						return t_a.getPath(t_b);
+					}
+					else
+					{
+						return t_b.getPath(t_a);
+					}
 				}
 			}
 		}
-		swap(t_a, t_b);
+		else
+		{
+			if (t_b.extend(q_rand, map) != Return::Trapped)
+			{
+				q_last = t_b.getLast();
+				i++;
+				if (t_a.connect(q_last, map) == Return::Reached)
+				{
+					if (t_b.getTree().at(0) == q_start)
+					{
+						return t_b.getPath(t_a);
+					}
+					else
+					{
+						return t_a.getPath(t_b);
+					}
+				}
+			}
+		}
+		tree = !tree;
+		//swap(t_a, t_b);
 
 	} while (i < LIMITS);
 	cout<<"Path not found -> Limit too short!"<<endl;

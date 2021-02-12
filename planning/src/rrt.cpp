@@ -13,9 +13,9 @@
 #include "planning/RRTPlanning.h"
 
 #define RESO_IM 0.35
-#define METHODO 2
-#define AFFICHAGE 0
-#define STATIC 0
+#define METHODO 1
+#define AFFICHAGE 1
+#define STATIC 1
 
 using namespace std;
 
@@ -104,8 +104,8 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
       goal = Vertex(800, 800);
       cv::Point ps(start.getPosPix()[0], start.getPosPix()[1]);
       cv::Point pg(goal.getPosPix()[0], goal.getPosPix()[1]);
-      cv::circle(image, ps, 10, cv::Scalar(255, 0, 0), -1);
-      cv::circle(image, pg, 10, cv::Scalar(255, 0, 0), -1);
+      cv::circle(image, ps, 10, cv::Scalar(0, 0, 255), -1);
+      cv::circle(image, pg, 10, cv::Scalar(0, 0, 255), -1);
     }
 
 
@@ -123,8 +123,11 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
       {
         for(size_t i = 0; i < tree.size(); i++)
         {
-            cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
-            cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
+            if (i!= 0)
+            {
+                cv::Point p(tree.at(i).getPosPix()[0], tree.at(i).getPosPix()[1]);
+                cv::circle(image, p, 10, cv::Scalar(255, 255, 0), -1);
+            }
 
             // On relie le nouveau point à son parent
             if (tree.at(i).getParentInd() >= 0)
@@ -139,7 +142,48 @@ bool planning_function(planning::RRTPlanning::Request& req, planning::RRTPlannin
     }
     else if(METHODO == 2) // rrt_connect
     {
-      path = rrt_connect_planner(start, goal, map);
+        Tree t_a = Tree(start);
+        Tree t_b = Tree(goal);
+        path = rrt_connect_planner(start, goal, map, t_a, t_b);
+        // Affichage
+        if(AFFICHAGE)
+        {
+            int cpt = 0;
+            while (cpt < max(t_a.getTree().size(), t_b.getTree().size()))
+            {
+                if (t_a.getTree().size() > cpt)
+                {
+                    if (cpt!= 0)
+                    {
+                        cv::Point p_a(t_a.getTree().at(cpt).getPosPix()[0], t_a.getTree().at(cpt).getPosPix()[1]);
+                        cv::circle(image, p_a, 10, cv::Scalar(255, 255, 0), -1);
+                    }
+                    // On relie le nouveau point à son parent
+                    if (t_a.getTree().at(cpt).getParentInd() >= 0)
+                    {
+                        cv::line(image, cv::Point(t_a.getTree().at(cpt).getPosPix()[0], t_a.getTree().at(cpt).getPosPix()[1]), cv::Point(t_a.getTree().at(t_a.getTree().at(cpt).getParentInd()).getPosPix()[0], t_a.getTree().at(t_a.getTree().at(cpt).getParentInd()).getPosPix()[1]), cv::Scalar(0, 0, 0), 1);
+                    }
+                }
+                if (t_b.getTree().size() > cpt)
+                {
+                    if (cpt!= 0)
+                    {
+                        cv::Point p_b(t_b.getTree().at(cpt).getPosPix()[0], t_b.getTree().at(cpt).getPosPix()[1]);
+                        cv::circle(image, p_b, 10, cv::Scalar(255, 0, 255), -1);
+                    }
+                    // On relie le nouveau point à son parent
+                    if (t_b.getTree().at(cpt).getParentInd() >= 0)
+                    {
+                        cv::line(image, cv::Point(t_b.getTree().at(cpt).getPosPix()[0], t_b.getTree().at(cpt).getPosPix()[1]), cv::Point(t_b.getTree().at(t_b.getTree().at(cpt).getParentInd()).getPosPix()[0], t_b.getTree().at(t_b.getTree().at(cpt).getParentInd()).getPosPix()[1]), cv::Scalar(0, 0, 0), 1);
+                    }
+                }
+
+                cv::resize(image, outImage, cv::Size(image.cols * 0.7, image.rows * 0.7), 0, 0, CV_INTER_LINEAR);
+                imshow("Display Image", outImage);
+                cv::waitKey(100);
+                cpt++;
+            }
+        }
     }
   	Dijkstra d(path, map);
   	vector<Vertex> path_simplifie = d.getBestPath(start, goal);
